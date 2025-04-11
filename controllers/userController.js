@@ -3,14 +3,15 @@ const ErrorHandler = require("../utils/errorHandler");
 const sendEmail = require("../utils/sendEmail.js");
 const crypto = require("crypto");
 const fs = require('fs');
+const path = require('path');
 const { promises: fsPromises } = require('fs');
-const { 
-    registerValidation, 
-    loginValidation, 
-    profileUpdateValidation, 
-    updatePasswordValidation, 
-    resetPasswordTokenValidation, 
-    forgotPasswordValidation 
+const {
+    registerValidation,
+    loginValidation,
+    profileUpdateValidation,
+    forgotPasswordValidation,
+    resetPasswordTokenValidation,
+    updatePasswordValidation
 } = require('../validators/authValidator');
 
 //////////////////////////////////////////// USER SIDE ////////////////////////////////////////////
@@ -30,7 +31,7 @@ exports.register = async (req, res, next) => {
         const userExists = await User.findOne({
             $or: [{ email }, { phone }]
         });
-        
+
         if (userExists) {
             return next(new ErrorHandler(
                 userExists.email === email ? "Email already registered" : "Phone number already registered",
@@ -154,15 +155,23 @@ exports.updateProfileImage = async (req, res, next) => {
             return next(new ErrorHandler("Please upload an image", 400));
         }
 
-        // Validate file type and size (redundant but safe check)
-        if (!req.file.mimetype.startsWith('image/')) {
+        // Add file size validation (5MB limit)
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (req.file.size > maxSize) {
             await fsPromises.unlink(req.file.path);
-            return next(new ErrorHandler("Please upload only image files", 400));
+            return next(new ErrorHandler("Image size should be less than 5MB", 400));
+        }
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+        if (!allowedTypes.includes(req.file.mimetype)) {
+            await fsPromises.unlink(req.file.path);
+            return next(new ErrorHandler("Please upload only JPG, JPEG or PNG images", 400));
         }
 
         // Find user and update in one operation
         const user = await User.findById(req.user.id);
-        
+
         if (!user) {
             await fsPromises.unlink(req.file.path);
             return next(new ErrorHandler("User not found", 404));
@@ -180,8 +189,8 @@ exports.updateProfileImage = async (req, res, next) => {
             }
         }
 
-        // Update user profile image
-        user.profileImage = req.file.path;
+        // Normalize the path with forward slashes
+        user.profileImage = req.file.path.split(path.sep).join('/');
         await user.save();
 
         res.status(200).json({
@@ -208,10 +217,13 @@ exports.updatePassword = async (req, res, next) => {
         if (error) return next(new ErrorHandler(error.details[0].message, 400));
 
         const user = await User.findById(req.user.id).select("+password");
-        const isPasswordMatched = await user.comparePassword(req.body.password);
+        if (!user) {
+            return next(new ErrorHandler("User not found", 404));
+        }
 
+        const isPasswordMatched = await user.comparePassword(req.body.password);
         if (!isPasswordMatched) {
-            return next(new ErrorHandler("old password is incorrect", 400));
+            return next(new ErrorHandler("Old password is incorrect", 400));
         }
 
         if (req.body.newPassword !== req.body.confirmPassword) {
@@ -233,7 +245,7 @@ exports.updatePassword = async (req, res, next) => {
 exports.forgotPassword = async (req, res, next) => {
     try {
         const { email } = req.body;
-        
+
         // Validate input
         const { error } = forgotPasswordValidation(req.body);
         if (error) return next(new ErrorHandler(error.details[0].message, 400));
@@ -322,11 +334,20 @@ exports.resetPassword = async (req, res, next) => {
 // ----------  Get All Users ---------- //
 exports.getAllUsers = async (req, res, next) => {
     try {
-        const users = await User.find({ role: "user" }).select("-password -resetPasswordToken -resetPasswordExpire").sort({ create_At: 1 });
+        const users = await User.find({ role: "user" })
+            .select("-password -resetPasswordToken -resetPasswordExpire")
+            .sort({ create_At: 1 });
 
         if (!users) return next(new ErrorHandler("No users found", 404));
 
-        res.status(200).json({ success: true, message: "Get All User Successfully", data: users });
+        const totalCount = await User.countDocuments({ role: "user" });
+
+        res.status(200).json({ 
+            success: true, 
+            message: "Get All User Successfully", 
+            count: totalCount,
+            data: users 
+        });
 
     } catch (err) {
         next(new ErrorHandler(`Server Error: ${err.message}`, 500));
@@ -348,43 +369,61 @@ exports.getUserDetails = async (req, res, next) => {
     }
 }
 
-// ----------  Update User ---------- //
+// // ----------  Update User ---------- //
 
-exports.updateUser = async (req, res, next) => {
-    try {
-        const { name, email, phone, role } = req.body;
+// exports.updateUser = async (req, res, next) => {
+//     try {
+//         const { name, email, phone, role } = req.body;
 
-        // Validate input (exclude profileImage from validation)
-        const { error } = registerValidation(req.body);
-        if (error) return next(new ErrorHandler(error.details[0].message, 400));
+//         // Validate input (exclude profileImage from validation)
+//         const { error } = registerValidation(req.body);
+//         if (error) return next(new ErrorHandler(error.details[0].message, 400));
 
-        // Check if user exists
-        const userExists = await User.findById(req.params.id);
-        if (!userExists) return next(new ErrorHandler("User not found", 404));
+//         // Check if user exists
+//         const userExists = await User.findById(req.params.id);
+//         if (!userExists) return next(new ErrorHandler("User not found", 404));
 
-        // Update user details
-        const updatedUser = await User.findByIdAndUpdate(req.params.id, { name, email, phone, role }, { new: true });
+//         // Update user details
+//         const updatedUser = await User.findByIdAndUpdate(req.params.id, { name, email, phone, role }, { new: true });
 
-        res.status(200).json({ success: true, message: "User updated successfully", data: updatedUser });
+//         res.status(200).json({ success: true, message: "User updated successfully", data: updatedUser });
 
-    } catch (err) {
-        next(new ErrorHandler(`Server Error: ${err.message}`, 500));
-    }
-}
+//     } catch (err) {
+//         next(new ErrorHandler(`Server Error: ${err.message}`, 500));
+//     }
+// }
+
 
 // ----------  Delete User ---------- //
 exports.deleteUser = async (req, res, next) => {
     try {
-        const user = await User.findByIdAndDelete(req.params.id);
+        const user = await User.findById(req.params.id);
 
         if (!user) return next(new ErrorHandler("User not found", 404));
 
-        res.status(200).json({ success: true, message: "User deleted successfully" });
+        // Delete profile image if exists
+        if (user.profileImage) {
+            const imagePath = path.join(__dirname, '..', user.profileImage);
+            console.log(imagePath);
+
+            try {
+                await fsPromises.unlink(imagePath);
+            } catch (error) {
+                // Only log error if file exists but couldn't be deleted
+                if (error.code !== 'ENOENT') {
+                    console.error("Error deleting profile image:", error);
+                }
+            }
+        }
+
+        await user.deleteOne();
+        res.status(200).json({ success: true, message: "User and profile image deleted successfully" });
 
     } catch (err) {
         next(new ErrorHandler(`Server Error: ${err.message}`, 500));
     }
 }
+
 // ----------  Admin Dashboard ---------- //
 exports.adminDashboard = async (req, res, next) => {
     try {
