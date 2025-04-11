@@ -28,6 +28,10 @@ app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/admin", userRoutes);
 app.use("/api/v1/product", productRoutes);
 
+// home Route
+app.use("/", (req,res)=>{
+    res.send("Everithig is Fine")
+})
 // Error Middleware
 app.use(errorMiddleware);
 

@@ -19,11 +19,11 @@ The data should be sent as JSON with the following fields:
 
 | Field         | Type     | Required | Description                              |
 |---------------|----------|----------|------------------------------------------|
-| `name`        | `string` | Yes      | Full name (min 3, max 50 characters).   |
-| `email`       | `string` | Yes      | Valid unique email address.             |
-| `phone`       | `string` | Yes      | Unique 10-digit phone number.           |
-| `password`    | `string` | Yes      | Password (min 4 characters).            |
-| `role`        | `string` | No       | User role (`user` or `admin`).          |
+| `name`        | `string` | Yes      | Full name (min 3, max 50 characters).    |
+| `email`       | `string` | Yes      | Valid unique email address.              |
+| `phone`       | `string` | Yes      | Unique 10-digit phone number.            |
+| `password`    | `string` | Yes      | Password (min 4 characters).             |
+| `role`        | `string` | No       | User role (`user` or `admin`).           |
 
 ### Response
 
