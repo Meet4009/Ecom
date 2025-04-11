@@ -44,7 +44,7 @@ exports.createProduct = async (req, res) => {
 
         // Map uploaded images
         const productImages = req.files.map(file => ({
-            url: `/uploads/${file.filename}`,
+            url: `/uploads/products/${file.filename}`,
             public_id: file.filename
         }));
 

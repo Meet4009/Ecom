@@ -11,9 +11,10 @@ const configureStorage = (destinationPath) => {
         destination: destinationPath,
         filename: (req, file, cb) => {
             const timestamp = Date.now();
-            const random = Math.round(Math.random() * 1E9);
+            // const random = Math.round(Math.random() * 1E9);
             const ext = path.extname(file.originalname);
-            cb(null, `${file.fieldname}-${timestamp}-${random}${ext}`);
+            // cb(null, `${file.fieldname}-${timestamp}-${random}${ext}`);
+            cb(null, `${file.fieldname}-${timestamp}${ext}`);
         }
     });
 };
