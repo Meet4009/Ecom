@@ -416,7 +416,7 @@ axios.put("http://localhost:5000/user/profile",
 ## Endpoint: `/user/profile/image`
 
 ### Description
-This endpoint is used to update the authenticated user's profile image. It accepts a single image file upload.
+This endpoint allows authenticated users to update their profile image. The endpoint performs validation on the image file including size and file type checks, handles the deletion of old profile images, and updates the user's profile with the new image path.
 
 ### HTTP Method
 `PATCH`
@@ -431,9 +431,15 @@ This endpoint is used to update the authenticated user's profile image. It accep
 ### Request Body
 The data should be sent as form-data with the following field:
 
-| Field          | Type   | Required | Description                                           |
-|----------------|--------|----------|-------------------------------------------------------|
-| `profileImage` | `file` | Yes      | Image file (JPG, PNG, JPEG, WebP). Max size: 5MB     |
+| Field          | Type   | Required | Description                                     |
+|----------------|--------|----------|-------------------------------------------------|
+| `profileImage` | `file` | Yes      | Image file (JPG, JPEG, PNG). Max size: 5MB     |
+
+### Validations
+- File size must not exceed 5MB
+- Only JPG, JPEG, and PNG file types are allowed
+- Authentication token must be valid
+- User must exist in the system
 
 ### Response
 
@@ -445,14 +451,17 @@ The data should be sent as form-data with the following field:
       "success": true,
       "message": "Profile image updated successfully",
       "data": {
-          "profileImage": "uploads/users/profileImage-1234567890.jpg"
+          "profileImage": "uploads/users/profileImage-timestamp.extension"
       }
   }
   ```
 
 #### Error Responses
 - **Status Code:** `400 Bad Request`
-  - **Reason:** No image uploaded or invalid file type
+  - **Cases:**
+    - No image uploaded
+    - Invalid file type
+    - File size exceeds limit
   - **Example Response:**
     ```json
     {
@@ -460,14 +469,46 @@ The data should be sent as form-data with the following field:
         "message": "Please upload an image"
     }
     ```
+    ```json
+    {
+        "success": false,
+        "message": "Please upload only JPG, JPEG or PNG images"
+    }
+    ```
+    ```json
+    {
+        "success": false,
+        "message": "Image size should be less than 5MB"
+    }
+    ```
 
 - **Status Code:** `401 Unauthorized`
-  - **Reason:** No token provided or invalid token
+  - **Reason:** Invalid or missing authentication token
   - **Example Response:**
     ```json
     {
         "success": false,
         "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `404 Not Found`
+  - **Reason:** User not found
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "User not found"
+    }
+    ```
+
+- **Status Code:** `500 Internal Server Error`
+  - **Reason:** Server error during file upload or processing
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Server Error: error_message"
     }
     ```
 
@@ -497,49 +538,98 @@ axios.patch("http://localhost:5000/user/profile/image",
 .catch(error => console.error(error.response.data));
 ```
 
-## Password Update Endpoint
+## Endpoint: `/user/password-update`
 
-Update user's password with authentication.
+### Description
+This endpoint allows authenticated users to update their password. It requires the current password for verification before setting the new password.
 
-**URL**: `/password-update`  
-**Method**: `PUT`  
-**Auth required**: Yes  
-**Authorization**: Bearer Token
+### HTTP Method
+`PUT`
+
+### URL
+`/user/password-update`
+
+### Request Headers
+- `Authorization: Bearer <token>`
+- `Content-Type: application/json`
 
 ### Request Body
-```json
-{
-  "oldPassword": "string",
-  "newPassword": "string"
-}
-```
+The data should be sent as JSON with the following fields:
 
-### Success Response
-```json
-{
-  "success": true,
-  "message": "Password updated successfully"
-}
-```
+| Field         | Type     | Required | Description                              |
+|---------------|----------|----------|------------------------------------------|
+| `oldPassword` | `string` | Yes      | Current password for verification        |
+| `newPassword` | `string` | Yes      | New password (min 4 characters)          |
 
-### Error Response
-```json
-{
-  "success": false,
-  "message": "Current password is incorrect"
-}
-```
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "message": "Password updated successfully"
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `400 Bad Request`
+  - **Reason:** Current password is incorrect
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Current password is incorrect"
+    }
+    ```
+
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `500 Internal Server Error`
+  - **Reason:** Server error during password update
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Server Error: error_message"
+    }
+    ```
 
 ### Example Usage
+#### cURL Command
 ```bash
-curl -X PUT \
-  'http://your-domain/password-update' \
-  -H 'Authorization: Bearer YOUR_TOKEN' \
-  -H 'Content-Type: application/json' \
-  -d '{
+curl -X PUT http://localhost:5000/user/password-update \
+-H "Authorization: Bearer your_jwt_token" \
+-H "Content-Type: application/json" \
+-d '{
     "oldPassword": "currentPassword123",
     "newPassword": "newPassword123"
-  }'
+}'
+```
+
+#### JavaScript (Axios)
+```javascript
+axios.put("http://localhost:5000/user/password-update",
+{
+    oldPassword: "currentPassword123",
+    newPassword: "newPassword123"
+},
+{
+    headers: {
+        "Authorization": "Bearer your_jwt_token"
+    }
+})
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
 ```
 
 ## Endpoint: `/user/password-forgot`
@@ -691,6 +781,272 @@ curl -X PUT http://localhost:5000/user/password-reset/your_reset_token \
 axios.put(`http://localhost:5000/user/password-reset/${resetToken}`, {
     newPassword: "newSecurePassword",
     confirmPassword: "newSecurePassword"
+})
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
+
+## Endpoint: `/admin/users`
+
+### Description
+This endpoint allows administrators to retrieve a list of all users in the system. Only accessible by users with admin role.
+
+### HTTP Method
+`GET`
+
+### URL
+`/admin/users`
+
+### Request Headers
+- `Authorization: Bearer <token>`
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "message": "Get All User Successfully",
+      "count": 10,
+      "data": [
+          {
+              "_id": "user_id",
+              "name": "User Name",
+              "email": "user@example.com",
+              "phone": "1234567890",
+              "role": "user",
+              "profileImage": "image_url",
+              "createdAt": "2024-01-20T12:00:00.000Z"
+          }
+          // ... more users
+      ]
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `403 Forbidden`
+  - **Reason:** User is not an admin
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Role (user) is not authorized to access this route"
+    }
+    ```
+
+- **Status Code:** `404 Not Found`
+  - **Reason:** No users found
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "No users found"
+    }
+    ```
+
+### Example Usage
+#### cURL Command
+```bash
+curl -X GET http://localhost:5000/admin/users \
+-H "Authorization: Bearer your_jwt_token"
+```
+
+#### JavaScript (Axios)
+```javascript
+axios.get("http://localhost:5000/admin/users", {
+    headers: {
+        "Authorization": "Bearer your_jwt_token"
+    }
+})
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
+
+## Endpoint: `/admin/users/:id`
+
+### Description
+This endpoint allows administrators to retrieve details of a specific user. Only accessible by users with admin role.
+
+### HTTP Method
+`GET`
+
+### URL
+`/admin/users/:id`
+
+### Request Headers
+- `Authorization: Bearer <token>`
+
+### URL Parameters
+| Parameter | Type     | Description                     |
+|-----------|----------|---------------------------------|
+| `id`      | `string` | ID of the user to retrieve      |
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "data": {
+          "_id": "user_id",
+          "name": "User Name",
+          "email": "user@example.com",
+          "phone": "1234567890",
+          "role": "user",
+          "profileImage": "image_url",
+          "createdAt": "2024-01-20T12:00:00.000Z"
+      }
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `403 Forbidden`
+  - **Reason:** User is not an admin
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Role (user) is not authorized to access this route"
+    }
+    ```
+
+- **Status Code:** `404 Not Found`
+  - **Reason:** User not found
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "User not found"
+    }
+    ```
+
+### Example Usage
+#### cURL Command
+```bash
+curl -X GET http://localhost:5000/admin/users/user_id \
+-H "Authorization: Bearer your_jwt_token"
+```
+
+#### JavaScript (Axios)
+```javascript
+axios.get(`http://localhost:5000/admin/users/${userId}`, {
+    headers: {
+        "Authorization": "Bearer your_jwt_token"
+    }
+})
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
+
+## Endpoint: `/admin/delete/:id`
+
+### Description
+This endpoint allows administrators to delete a user account and their associated profile image. Only accessible by admin users.
+
+### HTTP Method
+`DELETE`
+
+### URL
+`/admin/delete/:id`
+
+### Request Headers
+- `Authorization: Bearer <token>`
+
+### URL Parameters
+| Parameter | Type     | Description                     |
+|-----------|----------|---------------------------------|
+| `id`      | `string` | ID of the user to be deleted    |
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "message": "User and profile image deleted successfully"
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `403 Forbidden`
+  - **Reason:** User is not an admin
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Access denied. Admin only."
+    }
+    ```
+
+- **Status Code:** `404 Not Found`
+  - **Reason:** User not found
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "User not found"
+    }
+    ```
+
+- **Status Code:** `500 Internal Server Error`
+  - **Reason:** Server error during user deletion
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Server Error: error_message"
+    }
+    ```
+
+### Example Usage
+#### cURL Command
+```bash
+curl -X DELETE http://localhost:5000/admin/delete/user_id \
+-H "Authorization: Bearer your_jwt_token"
+```
+
+#### JavaScript (Axios)
+```javascript
+axios.delete(`http://localhost:5000/admin/delete/${userId}`, {
+    headers: {
+        "Authorization": "Bearer your_jwt_token"
+    }
 })
 .then(response => console.log(response.data))
 .catch(error => console.error(error.response.data));
