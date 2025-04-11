@@ -1,65 +1,75 @@
 const Joi = require("joi");
 
-// Register Validation Function
+// Common validation schemas
+const passwordSchema = Joi.string().min(4).max(12).required();
+const emailSchema = Joi.string().email().required();
+const phoneSchema = Joi.string().length(10).pattern(/^[0-9]+$/);
+
+// Reusable password confirmation schema
+const passwordConfirmationSchema = {
+    newPassword: passwordSchema,
+    confirmPassword: Joi.string().valid(Joi.ref('newPassword')).required()
+        .messages({ 'any.only': 'Passwords do not match' })
+};
+
+// Common profile fields schema
+const profileFieldsSchema = {
+    name: Joi.string().min(3).max(50),
+    email: emailSchema.optional(),
+    phone: phoneSchema.optional()
+};
+
 const registerValidation = (data) => {
     const schema = Joi.object({
-        name: Joi.string().min(3).max(255).required(),
-        email: Joi.string().email().required(),
-        phone: Joi.string().length(10).pattern(/^[0-9]+$/).required(),
-        password: Joi.string().min(4).max(255).required(),
-        role: Joi.string().valid("user", "admin").optional(), // Optional, can be empty string
+        name: Joi.string().min(3).max(50).required(),
+        email: emailSchema,
+        phone: phoneSchema.required(),
+        password: passwordSchema,
+        role: Joi.string().valid("user", "admin").optional(),
     });
     return schema.validate(data);
 };
 
-
-// Login Validation Function
 const loginValidation = (data) => {
     const schema = Joi.object({
-        login: Joi.string().required(), // Can be email or phone number
-        password: Joi.string().min(4).required(),
+        login: Joi.string().required(),
+        password: passwordSchema,
     });
     return schema.validate(data);
 };
 
-// Validate profile update
 const profileUpdateValidation = (data) => {
     const schema = Joi.object({
-        name: Joi.string().min(4),
-        email: Joi.string().min(6).email(),
-        phone: Joi.string().length(10).pattern(/^[0-9]+$/),
-        profileImage: Joi.string().optional(), // Optional, can be empty string
-    });
-    return schema.validate(data);
-};
-
-// Validate password reset
-const updatePasswordValidation = (data) => {
-    const schema = Joi.object({
-        password: Joi.string().min(4).required(),
-        newPassword: Joi.string().min(4).required(),
-        confirmPassword: Joi.string().required(),
+        ...profileFieldsSchema,
     });
     return schema.validate(data);
 };
 
 const forgotPasswordValidation = (data) => {
     const schema = Joi.object({
-        email: Joi.string().email().required(),
+        email: emailSchema
     });
     return schema.validate(data);
 };
-
-// Validate password reset token
-
 
 const resetPasswordTokenValidation = (data) => {
+    const schema = Joi.object(passwordConfirmationSchema);
+    return schema.validate(data);
+};
+
+const updatePasswordValidation = (data) => {
     const schema = Joi.object({
-        newPassword: Joi.string().min(4).required(),
-        confirmPassword: Joi.string().min(4).required(),
+        password: passwordSchema,
+        ...passwordConfirmationSchema
     });
     return schema.validate(data);
 };
 
-
-module.exports = { registerValidation, loginValidation, profileUpdateValidation, updatePasswordValidation, forgotPasswordValidation, resetPasswordTokenValidation };
+module.exports = {
+    registerValidation,
+    loginValidation,
+    profileUpdateValidation,
+    forgotPasswordValidation,
+    resetPasswordTokenValidation,
+    updatePasswordValidation
+};

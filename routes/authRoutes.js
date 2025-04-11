@@ -26,7 +26,7 @@ router.put('/password-reset/:token', userController.resetPassword);
 // ✅ Admin Only Routes
 router.get('/users', authMiddleware, authorizeRoles("admin"), userController.getAllUsers);
 router.get('/user/:id', authMiddleware, authorizeRoles("admin"), userController.getUserDetails);
-router.put('/user/:id', authMiddleware, authorizeRoles("admin"), userController.updateUser);
+// router.put('/user/:id', authMiddleware, authorizeRoles("admin"), userController.updateUser);
 router.delete('/user/:id', authMiddleware, authorizeRoles("admin"), userController.deleteUser);
 
 module.exports = router;
