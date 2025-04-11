@@ -2,6 +2,8 @@ const User = require('../models/userModel');
 const ErrorHandler = require("../utils/errorHandler");
 const sendEmail = require("../utils/sendEmail.js");
 const crypto = require("crypto");
+const fs = require('fs');
+const { promises: fsPromises } = require('fs');
 const { 
     registerValidation, 
     loginValidation, 
@@ -140,6 +142,61 @@ exports.updateProfile = async (req, res, next) => {
         res.status(200).json({ success: true, message: "Profile updated successfully", data: user });
 
     } catch (err) {
+        next(new ErrorHandler(`Server Error: ${err.message}`, 500));
+    }
+};
+
+// ----------  Profile Image Update ---------- //
+exports.updateProfileImage = async (req, res, next) => {
+    try {
+        // Basic validation
+        if (!req.file) {
+            return next(new ErrorHandler("Please upload an image", 400));
+        }
+
+        // Validate file type and size (redundant but safe check)
+        if (!req.file.mimetype.startsWith('image/')) {
+            await fsPromises.unlink(req.file.path);
+            return next(new ErrorHandler("Please upload only image files", 400));
+        }
+
+        // Find user and update in one operation
+        const user = await User.findById(req.user.id);
+        
+        if (!user) {
+            await fsPromises.unlink(req.file.path);
+            return next(new ErrorHandler("User not found", 404));
+        }
+
+        // Delete old image if exists
+        if (user.profileImage) {
+            try {
+                await fsPromises.unlink(user.profileImage);
+            } catch (error) {
+                // Only log error if file exists but couldn't be deleted
+                if (error.code !== 'ENOENT') {
+                    console.error("Error deleting old image:", error);
+                }
+            }
+        }
+
+        // Update user profile image
+        user.profileImage = req.file.path;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Profile image updated successfully",
+            data: {
+                profileImage: user.profileImage
+            }
+        });
+
+    } catch (err) {
+        // Cleanup uploaded file if error occurs
+        if (req.file) {
+            await fsPromises.unlink(req.file.path).catch(console.error);
+        }
         next(new ErrorHandler(`Server Error: ${err.message}`, 500));
     }
 };

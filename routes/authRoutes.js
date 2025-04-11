@@ -11,15 +11,17 @@ const router = express.Router();
 // ✅ User Authentication Routes
 router.post('/register', userController.register);
 router.post('/login', userController.login);
-router.get('/logout', authMiddleware, userController.logout); 
+router.get('/logout', authMiddleware, userController.logout);
+
 // ✅ User Profile Routes
 router.get('/profile', authMiddleware, userController.getProfile);
-router.put('/profile', authMiddleware, upload, userController.updateProfile);
+router.put('/profile', authMiddleware, userController.updateProfile);
+router.patch('/profile/image', authMiddleware, upload, userController.updateProfileImage);
 
 // ✅ User Password Routes
-router.put('/password/update', authMiddleware, userController.updatePassword);
+router.put('/password-update', authMiddleware, userController.updatePassword);
 router.post('/password-forgot', userController.forgotPassword);
-router.put('/password/reset/:token', userController.resetPassword);
+router.put('/password-reset/:token', userController.resetPassword);
 
 // ✅ Admin Only Routes
 router.get('/users', authMiddleware, authorizeRoles("admin"), userController.getAllUsers);
