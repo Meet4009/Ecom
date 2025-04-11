@@ -1,6 +1,6 @@
 # API Documentation
 
-## Endpoint: `/users/register`
+## Endpoint: `/user/register`
 
 ### Description
 This endpoint is used to register a new user in the system. It accepts user details such as name, email, phone, password, and an optional profile image. The first user to register is assigned the role of "admin" by default, while subsequent users are assigned the role of "user" unless specified.
@@ -9,56 +9,56 @@ This endpoint is used to register a new user in the system. It accepts user deta
 `POST`
 
 ### URL
-`/users/register`
+`/user/register`
 
 ### Request Headers
-- `Content-Type: multipart/form-data`
+- `Content-Type: application/json`
 
 ### Request Body
-The data should be sent as `multipart/form-data` with the following fields:
+The data should be sent as JSON with the following fields:
 
 | Field         | Type     | Required | Description                              |
 |---------------|----------|----------|------------------------------------------|
-| `name`        | `string` | Yes      | Full name of the user (min 3, max 255). |
-| `email`       | `string` | Yes      | Valid email address.                    |
-| `phone`       | `string` | Yes      | 10-digit phone number.                  |
-| `password`    | `string` | Yes      | Password (min 4, max 255).              |
-| `profileImage`| `file`   | No       | Profile image file (JPEG/PNG/JPG).      |
+| `name`        | `string` | Yes      | Full name (min 3, max 50 characters).   |
+| `email`       | `string` | Yes      | Valid unique email address.             |
+| `phone`       | `string` | Yes      | Unique 10-digit phone number.           |
+| `password`    | `string` | Yes      | Password (min 4 characters).            |
 | `role`        | `string` | No       | User role (`user` or `admin`).          |
 
 ### Response
 
 #### Success Response
-- **Status Code:** `200 OK`
+- **Status Code:** `201 Created`
 - **Response Body:**
   ```json
   {
       "success": true,
-      "message": "User registered successfully",
+      "message": "Registration successful",
       "data": {
-          "id": "user_id",
           "name": "User Name",
           "email": "user@example.com",
           "phone": "1234567890",
           "role": "user",
-          "profileImage": "profile_image_filename"
+          "loggedIn": false,
+          "createdAt": "2024-01-20T12:00:00.000Z",
+          "_id": "user_id"
       }
   }
   ```
 
 #### Error Responses
 - **Status Code:** `400 Bad Request`
-  - **Reason:** Validation error or missing required fields.
+  - **Reason:** Validation error, existing email/phone, or missing required fields
   - **Example Response:**
     ```json
     {
         "success": false,
-        "message": "Validation error message"
+        "message": "Email already registered"
     }
     ```
 
 - **Status Code:** `500 Internal Server Error`
-  - **Reason:** Server error during registration.
+  - **Reason:** Server error during registration
   - **Example Response:**
     ```json
     {
@@ -70,32 +70,29 @@ The data should be sent as `multipart/form-data` with the following fields:
 ### Example Usage
 #### cURL Command
 ```bash
-curl -X POST http://localhost:5000/users/register \
--H "Content-Type: multipart/form-data" \
--F "name=John Doe" \
--F "email=johndoe@example.com" \
--F "phone=1234567890" \
--F "password=securepassword" \
--F "profileImage=@path/to/image.jpg"
+curl -X POST http://localhost:5000/user/register \
+-H "Content-Type: application/json" \
+-d '{
+    "name": "John Doe",
+    "email": "johndoe@example.com",
+    "phone": "1234567890",
+    "password": "securepassword"
+}'
 ```
 
 #### JavaScript (Axios)
 ```javascript
-const formData = new FormData();
-formData.append("name", "John Doe");
-formData.append("email", "johndoe@example.com");
-formData.append("phone", "1234567890");
-formData.append("password", "securepassword");
-formData.append("profileImage", fileInput.files[0]);
-
-axios.post("http://localhost:5000/users/register", formData, {
-    headers: { "Content-Type": "multipart/form-data" }
+axios.post("http://localhost:5000/user/register", {
+    name: "John Doe",
+    email: "johndoe@example.com",
+    phone: "1234567890",
+    password: "securepassword"
 })
 .then(response => console.log(response.data))
 .catch(error => console.error(error.response.data));
 ```
 
-## Endpoint: `/users/login`
+## Endpoint: `/user/login`
 
 ### Description
 This endpoint is used to authenticate a user and provide a token for accessing protected resources. It accepts the user's email and password.
@@ -104,7 +101,7 @@ This endpoint is used to authenticate a user and provide a token for accessing p
 `POST`
 
 ### URL
-`/users/login`
+`/user/login`
 
 ### Request Headers
 - `Content-Type: application/json`
@@ -112,10 +109,10 @@ This endpoint is used to authenticate a user and provide a token for accessing p
 ### Request Body
 The data should be sent as JSON with the following fields:
 
-| Field      | Type     | Required | Description                  |
-|------------|----------|----------|------------------------------|
-| `email`    | `string` | Yes      | Registered email address.    |
-| `password` | `string` | Yes      | User's password.             |
+| Field      | Type     | Required | Description                                    |
+|------------|----------|----------|------------------------------------------------|
+| `login`    | `string` | Yes      | User's email address or phone number.         |
+| `password` | `string` | Yes      | User's password.                              |
 
 ### Response
 
@@ -162,15 +159,15 @@ The data should be sent as JSON with the following fields:
 ### Example Usage
 #### cURL Command
 ```bash
-curl -X POST http://localhost:5000/users/login \
+curl -X POST http://localhost:5000/user/login \
 -H "Content-Type: application/json" \
--d '{"email": "johndoe@example.com", "password": "securepassword"}'
+-d '{"login": "johndoe@example.com", "password": "securepassword"}'
 ```
 
 #### JavaScript (Axios)
 ```javascript
-axios.post("http://localhost:5000/users/login", {
-    email: "johndoe@example.com",
+axios.post("http://localhost:5000/user/login", {
+    login: "johndoe@example.com",
     password: "securepassword"
 })
 .then(response => console.log(response.data))

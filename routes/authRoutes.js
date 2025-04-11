@@ -9,7 +9,7 @@ const { upload } = require("../middlewares/upload"); // Destructure upload from 
 const router = express.Router();
 
 // ✅ User Authentication Routes
-router.post('/register', upload, userController.register);
+router.post('/register', userController.register);
 router.post('/login', userController.login);
 router.get('/logout', authMiddleware, userController.logout); 
 // ✅ User Profile Routes

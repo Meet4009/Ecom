@@ -10,10 +10,10 @@ const userRoutes = require("./routes/authRoutes");
 const productRoutes = require("./routes/productRoutes");
 const errorMiddleware = require("./middlewares/error");
 
-// Middleware
+// Middleware.
+app.use(express.json()); // for parsing JSON
+app.use(express.urlencoded({ extended: true })); // for parsing form data
 app.use(cookieParser());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(helmet());
 app.use(cors({
     origin: process.env.CORS_ORIGIN || '*',

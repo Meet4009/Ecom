@@ -18,16 +18,6 @@ exports.register = async (req, res, next) => {
     try {
         const { name, email, phone, password } = req.body;
 
-        // Validate file upload and type
-        if (!req.file) {
-            return next(new ErrorHandler("Please upload a profile image", 400));
-        }
-
-        const fileType = req.file.mimetype.split('/')[0];
-        if (fileType !== 'image') {
-            return next(new ErrorHandler("Please upload a valid image file", 400));
-        }
-
         // Validate user input
         const { error } = registerValidation(req.body);
         if (error) {
@@ -57,7 +47,6 @@ exports.register = async (req, res, next) => {
             phone,
             password,
             role,
-            profileImage: req.file.filename
         });
 
         res.status(201).json({
