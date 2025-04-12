@@ -1,6 +1,47 @@
 const Product = require("../models/productModel");
 const { productValidationSchema, productUpdateValidationSchema } = require("../validators/productValidation");
 
+
+// ----------  Admin Dashboard ---------- //
+exports.adminDashboard = async (req, res, next) => {
+    try {
+        // User statistics
+        const totalUsers = await User.countDocuments({ role: "user" });
+        const totalAdmins = await User.countDocuments({ role: "admin" });
+        const totalUsersToday = await User.countDocuments({ create_At: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) } });
+
+        // Product statistics
+        const totalProducts = await Product.countDocuments();
+        const totalActiveProducts = await Product.countDocuments({ status: "active" });
+        const totalInactiveProducts = await Product.countDocuments({ status: "inactive" });
+        const productsAddedToday = await Product.countDocuments({ 
+            createdAt: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) }
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Admin Dashboard",
+            data: {
+                users: {
+                    totalUsers,
+                    totalAdmins,
+                    totalUsersToday,
+                },
+                products: {
+                    totalProducts,
+                    totalActiveProducts,
+                    totalInactiveProducts,
+                    productsAddedToday
+                }
+            },
+        });
+
+    } catch (err) {
+        next(new ErrorHandler(`Server Error: ${err.message}`, 500));
+    }
+}
+
+
 // ---------- Create Product ---------- //
 exports.createProduct = async (req, res) => {
     try {

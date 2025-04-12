@@ -1,4 +1,5 @@
 const User = require('../models/userModel');
+const Product = require('../models/productModel');
 const ErrorHandler = require("../utils/errorHandler");
 const sendEmail = require("../utils/sendEmail.js");
 const crypto = require("crypto");
@@ -355,7 +356,6 @@ exports.getAllUsers = async (req, res, next) => {
 };
 
 // ----------  Get User Details ---------- //
-
 exports.getUserDetails = async (req, res, next) => {
     try {
         const user = await User.findById(req.params.id);
@@ -424,25 +424,63 @@ exports.deleteUser = async (req, res, next) => {
     }
 }
 
-// ----------  Admin Dashboard ---------- //
-exports.adminDashboard = async (req, res, next) => {
+// ---------- Watchlist Controllers ---------- //
+exports.addToWatchlist = async (req, res, next) => {
     try {
-        const totalUsers = await User.countDocuments({ role: "user" });
-        const totalAdmins = await User.countDocuments({ role: "admin" });
-        const totalUsersToday = await User.countDocuments({ create_At: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) } });
+        const user = await User.findById(req.user.id);
+        const productId = req.params.id;
+
+        // Check if product exists
+        const product = await Product.findById(productId);
+        if (!product) {
+            return next(new ErrorHandler("Product not found", 404));
+        }
+
+        // Check if product is already in watchlist
+        if (user.watchlist.includes(productId)) {
+            return next(new ErrorHandler("Product already in watchlist", 400));
+        }
+
+        // Add to watchlist
+        user.watchlist.push(productId);
+        await user.save();
 
         res.status(200).json({
             success: true,
-            message: "Admin Dashboard",
-            data: {
-                totalUsers,
-                totalAdmins,
-                totalUsersToday,
-            },
+            message: "Product added to watchlist"
         });
-
     } catch (err) {
         next(new ErrorHandler(`Server Error: ${err.message}`, 500));
     }
-}
+};
 
+exports.removeFromWatchlist = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.id);
+        const productId = req.params.id;
+
+        // Remove from watchlist
+        user.watchlist = user.watchlist.filter(id => id.toString() !== productId);
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Product removed from watchlist"
+        });
+    } catch (err) {
+        next(new ErrorHandler(`Server Error: ${err.message}`, 500));
+    }
+};
+
+exports.getWatchlist = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.id).populate('watchlist');
+        
+        res.status(200).json({
+            success: true,
+            watchlist: user.watchlist
+        });
+    } catch (err) {
+        next(new ErrorHandler(`Server Error: ${err.message}`, 500));
+    }
+};

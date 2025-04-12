@@ -53,7 +53,11 @@ const userSchema = new mongoose.Schema({
         default: Date.now
     },
     resetPasswordToken: String,
-    resetPasswordExpire: Date
+    resetPasswordExpire: Date,
+    watchlist: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product'
+    }]
 }, {
     timestamps: true
 });

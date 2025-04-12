@@ -16,12 +16,18 @@ router.get('/logout', authMiddleware, userController.logout);
 // ✅ User Profile Routes
 router.get('/profile', authMiddleware, userController.getProfile);
 router.put('/profile', authMiddleware, userController.updateProfile);
-router.patch('/profile/image', authMiddleware, upload, userController.updateProfileImage);
+router.patch('/profile-image', authMiddleware, upload, userController.updateProfileImage);
 
 // ✅ User Password Routes
 router.put('/password-update', authMiddleware, userController.updatePassword);
 router.post('/password-forgot', userController.forgotPassword);
 router.put('/password-reset/:token', userController.resetPassword);
+
+// Watchlist routes
+router.post('/watchlist/:id', authMiddleware, userController.addToWatchlist);
+router.get('/watchlist', authMiddleware, userController.getWatchlist);
+router.delete('/watchlist/:id', authMiddleware, userController.removeFromWatchlist);
+
 
 // ✅ Admin Only Routes
 router.get('/users', authMiddleware, authorizeRoles("admin"), userController.getAllUsers);
