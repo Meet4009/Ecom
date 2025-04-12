@@ -953,3 +953,591 @@ axios.delete(`https://ecom-kl8f.onrender.com/api/v1/admin/delete/${userId}`, {
 .then(response => console.log(response.data))
 .catch(error => console.error(error.response.data));
 ```
+
+## Endpoint: `/api/product/create`
+
+### Description
+This endpoint allows administrators to create a new product with details including name, price, category, brand, stock, descriptions, FAQs, and multiple product images. Only accessible by users with admin role.
+
+### HTTP Method
+`POST`
+
+### URL
+`/api/product/create`
+
+### Request Headers
+- `Authorization: Bearer <token>`
+- `Content-Type: multipart/form-data`
+
+### Request Body
+The data should be sent as multipart/form-data with the following fields:
+
+| Field           | Type        | Required | Description                                    |
+|----------------|-------------|----------|------------------------------------------------|
+| `name`         | `string`    | Yes      | Product name                                  |
+| `price`        | `number`    | Yes      | Product price                                 |
+| `category`     | `string`    | Yes      | Product category                              |
+| `brand`        | `string`    | Yes      | Product brand                                 |
+| `stock`        | `number`    | Yes      | Available stock quantity                      |
+| `description`  | `JSON`      | Yes      | Array of description objects (see format below)|
+| `faqs`         | `JSON`      | Yes      | Array of FAQ objects (see format below)       |
+| `productImages`| `file`      | Yes      | Up to 10 product images (JPG, JPEG, PNG)      |
+
+### Description Object Format
+```json
+[
+  {
+    "title": "string",
+    "points": ["string", "string"]
+  }
+]
+```
+
+### FAQ Object Format
+```json
+[
+  {
+    "question": "string",
+    "answer": [
+      {
+        "title": "string",
+        "points": ["string", "string"]
+      }
+    ]
+  }
+]
+```
+
+### Response
+
+#### Success Response
+- **Status Code:** `201 Created`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "product": {
+          "_id": "product_id",
+          "name": "Product Name",
+          "price": 999,
+          "category": "Category",
+          "brand": "Brand",
+          "stock": 100,
+          "description": [],
+          "faqs": [],
+          "productImages": [
+              {
+                  "url": "/uploads/products/image-filename.jpg",
+                  "public_id": "image-filename"
+              }
+          ],
+          "ratings": 0,
+          "numReviews": 0,
+          "status": "Active",
+          "createdUser": "user_id",
+          "createdAt": "2024-01-20T12:00:00.000Z"
+      }
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `400 Bad Request`
+  - **Reason:** Missing required fields or invalid data
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Product images are required"
+    }
+    ```
+    ```json
+    {
+        "success": false,
+        "message": "Invalid JSON format in description or FAQs"
+    }
+    ```
+
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `403 Forbidden`
+  - **Reason:** User is not an admin
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Role (user) is not authorized to access this route"
+    }
+    ```
+
+### Example Usage
+#### JavaScript (Axios)
+```javascript
+const formData = new FormData();
+formData.append('name', 'Product Name');
+formData.append('price', '999');
+formData.append('category', 'Category');
+formData.append('brand', 'Brand');
+formData.append('stock', '100');
+formData.append('description', JSON.stringify([
+    {
+        title: "Description Title",
+        points: ["Point 1", "Point 2"]
+    }
+]));
+formData.append('faqs', JSON.stringify([
+    {
+        question: "FAQ Question?",
+        answer: [{
+            title: "Answer Title",
+            points: ["Point 1", "Point 2"]
+        }]
+    }
+]));
+
+// Append product images
+productImages.forEach(image => {
+    formData.append('productImages', image);
+});
+
+axios.post('https://ecom-kl8f.onrender.com/api/v1/product/create', 
+    formData,
+    {
+        headers: {
+            'Authorization': 'Bearer your_jwt_token',
+            'Content-Type': 'multipart/form-data'
+        }
+    }
+)
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
+
+## Endpoint: `/api/product`
+
+### Description
+This endpoint allows retrieving all products in the system. No authentication is required to access this endpoint.
+
+### HTTP Method
+`GET`
+
+### URL
+`/api/product`
+
+### Request Headers
+None required
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "products": [
+          {
+              "_id": "product_id",
+              "name": "Product Name",
+              "price": 999,
+              "category": "Category",
+              "brand": "Brand",
+              "stock": 100,
+              "description": [
+                  {
+                      "title": "Description Title",
+                      "points": ["Point 1", "Point 2"]
+                  }
+              ],
+              "faqs": [
+                  {
+                      "question": "FAQ Question?",
+                      "answer": [
+                          {
+                              "title": "Answer Title",
+                              "points": ["Point 1", "Point 2"]
+                          }
+                      ]
+                  }
+              ],
+              "productImages": [
+                  {
+                      "url": "/uploads/products/image-filename.jpg",
+                      "public_id": "image-filename"
+                  }
+              ],
+              "ratings": 0,
+              "numReviews": 0,
+              "status": "Active",
+              "createdUser": {
+                  "name": "Admin Name",
+                  "email": "admin@example.com"
+              },
+              "createdAt": "2024-01-20T12:00:00.000Z"
+          }
+      ]
+  }
+  ```
+
+#### Error Response
+- **Status Code:** `500 Internal Server Error`
+  - **Reason:** Server error while fetching products
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Server Error",
+        "error": "error_message"
+    }
+    ```
+
+### Example Usage
+#### JavaScript (Axios)
+```javascript
+axios.get('https://ecom-kl8f.onrender.com/api/v1/product')
+    .then(response => console.log(response.data))
+    .catch(error => console.error(error.response.data));
+```
+
+## Endpoint: `/api/product/:id`
+
+### Description
+This endpoint allows retrieving details of a specific product by its ID. No authentication is required to access this endpoint.
+
+### HTTP Method
+`GET`
+
+### URL
+`/api/product/:id`
+
+### Request Headers
+None required
+
+### URL Parameters
+| Parameter | Type     | Description                     |
+|-----------|----------|---------------------------------|
+| `id`      | `string` | ID of the product to retrieve   |
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "product": {
+          "_id": "product_id",
+          "name": "Product Name",
+          "price": 999,
+          "category": "Category",
+          "brand": "Brand",
+          "stock": 100,
+          "description": [
+              {
+                  "title": "Description Title",
+                  "points": ["Point 1", "Point 2"]
+              }
+          ],
+          "faqs": [
+              {
+                  "question": "FAQ Question?",
+                  "answer": [
+                      {
+                          "title": "Answer Title",
+                          "points": ["Point 1", "Point 2"]
+                      }
+                  ]
+              }
+          ],
+          "productImages": [
+              {
+                  "url": "/uploads/products/image-filename.jpg",
+                  "public_id": "image-filename"
+              }
+          ],
+          "ratings": 0,
+          "numReviews": 0,
+          "status": "Active",
+          "createdUser": {
+              "name": "Admin Name",
+              "email": "admin@example.com"
+          },
+          "createdAt": "2024-01-20T12:00:00.000Z"
+      }
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `404 Not Found`
+  - **Reason:** Product not found
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Product not found"
+    }
+    ```
+
+- **Status Code:** `500 Internal Server Error`
+  - **Reason:** Server error while fetching product
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Server Error",
+        "error": "error_message"
+    }
+    ```
+
+### Example Usage
+#### JavaScript (Axios)
+```javascript
+axios.get(`https://ecom-kl8f.onrender.com/api/v1/product/${productId}`)
+    .then(response => console.log(response.data))
+    .catch(error => console.error(error.response.data));
+```
+
+## Endpoint: `/api/product/:id` (Update)
+
+### Description
+This endpoint allows administrators to update an existing product's details. Only accessible by users with admin role.
+
+### HTTP Method
+`PUT`
+
+### URL
+`/api/product/:id`
+
+### Request Headers
+- `Authorization: Bearer <token>`
+- `Content-Type: application/json`
+
+### URL Parameters
+| Parameter | Type     | Description                     |
+|-----------|----------|---------------------------------|
+| `id`      | `string` | ID of the product to update     |
+
+### Request Body
+The data should be sent as JSON. All fields are optional, but at least one must be provided:
+
+| Field           | Type        | Required | Description                                    |
+|----------------|-------------|----------|------------------------------------------------|
+| `name`         | `string`    | No       | Product name                                   |
+| `price`        | `number`    | No       | Product price                                  |
+| `category`     | `string`    | No       | Product category                               |
+| `brand`        | `string`    | No       | Product brand                                  |
+| `stock`        | `number`    | No       | Available stock quantity                       |
+| `description`  | `array`     | No       | Array of description objects (see format below)|
+| `faqs`         | `array`     | No       | Array of FAQ objects (see format below)        |
+
+### Description Object Format
+```json
+[
+  {
+    "title": "string",
+    "points": ["string", "string"]
+  }
+]
+```
+
+### FAQ Object Format
+```json
+[
+  {
+    "question": "string",
+    "answer": [
+      {
+        "title": "string",
+        "points": ["string", "string"]
+      }
+    ]
+  }
+]
+```
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "product": {
+          "_id": "product_id",
+          "name": "Updated Product Name",
+          "price": 999,
+          "category": "Updated Category",
+          "brand": "Updated Brand",
+          "stock": 100,
+          "description": [],
+          "faqs": [],
+          "productImages": [
+              {
+                  "url": "/uploads/products/image-filename.jpg",
+                  "public_id": "image-filename"
+              }
+          ],
+          "ratings": 0,
+          "numReviews": 0,
+          "status": "Active",
+          "createdUser": "user_id",
+          "createdAt": "2024-01-20T12:00:00.000Z",
+          "updatedAt": "2024-01-20T13:00:00.000Z"
+      }
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `400 Bad Request`
+  - **Reason:** Validation error or no fields to update
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "No valid fields to update"
+    }
+    ```
+
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `403 Forbidden`
+  - **Reason:** User is not an admin
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Role (user) is not authorized to access this route"
+    }
+    ```
+
+- **Status Code:** `404 Not Found`
+  - **Reason:** Product not found
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Product not found"
+    }
+    ```
+
+### Example Usage
+#### JavaScript (Axios)
+```javascript
+axios.put(`https://ecom-kl8f.onrender.com/api/v1/product/${productId}`,
+    {
+        name: "Updated Product Name",
+        price: 999,
+        stock: 100
+    },
+    {
+        headers: {
+            "Authorization": "Bearer your_jwt_token",
+            "Content-Type": "application/json"
+        }
+    }
+)
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
+
+## Endpoint: `/api/product/:id` (Delete)
+
+### Description
+This endpoint allows administrators to delete a specific product. Only accessible by users with admin role.
+
+### HTTP Method
+`DELETE`
+
+### URL
+`/api/product/:id`
+
+### Request Headers
+- `Authorization: Bearer <token>`
+
+### URL Parameters
+| Parameter | Type     | Description                     |
+|-----------|----------|---------------------------------|
+| `id`      | `string` | ID of the product to delete     |
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "message": "Product deleted successfully"
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `403 Forbidden`
+  - **Reason:** User is not an admin
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Role (user) is not authorized to access this route"
+    }
+    ```
+
+- **Status Code:** `404 Not Found`
+  - **Reason:** Product not found
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Product not found"
+    }
+    ```
+
+- **Status Code:** `500 Internal Server Error`
+  - **Reason:** Server error during deletion
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Server Error",
+        "error": "error_message"
+    }
+    ```
+
+### Example Usage
+#### JavaScript (Axios)
+```javascript
+axios.delete(`https://ecom-kl8f.onrender.com/api/v1/product/${productId}`, {
+    headers: {
+        "Authorization": "Bearer your_jwt_token"
+    }
+})
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
