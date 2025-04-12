@@ -68,18 +68,6 @@ The data should be sent as JSON with the following fields:
     ```
 
 ### Example Usage
-#### cURL Command
-```bash
-curl -X POST https://ecom-kl8f.onrender.com/api/v1/user/register \
--H "Content-Type: application/json" \
--d '{
-    "name": "John Doe",
-    "email": "johndoe@example.com",
-    "phone": "1234567890",
-    "password": "securepassword"
-}'
-```
-
 #### JavaScript (Axios)
 ```javascript
 axios.post("https://ecom-kl8f.onrender.com/api/v1/user/register", {
@@ -157,13 +145,6 @@ The data should be sent as JSON with the following fields:
     ```
 
 ### Example Usage
-#### cURL Command
-```bash
-curl -X POST https://ecom-kl8f.onrender.com/api/v1/user/login \
--H "Content-Type: application/json" \
--d '{"login": "johndoe@example.com", "password": "securepassword"}'
-```
-
 #### JavaScript (Axios)
 ```javascript
 axios.post("https://ecom-kl8f.onrender.com/api/v1/user/login", {
@@ -225,12 +206,6 @@ None required
     ```
 
 ### Example Usage
-#### cURL Command
-```bash
-curl -X GET https://ecom-kl8f.onrender.com/api/v1/user/logout \
--H "Authorization: Bearer your_jwt_token"
-```
-
 #### JavaScript (Axios)
 ```javascript
 axios.get("https://ecom-kl8f.onrender.com/api/v1/user/logout", {
@@ -301,12 +276,6 @@ None required
     ```
 
 ### Example Usage
-#### cURL Command
-```bash
-curl -X GET https://ecom-kl8f.onrender.com/api/v1/user/profile \
--H "Authorization: Bearer your_jwt_token"
-```
-
 #### JavaScript (Axios)
 ```javascript
 axios.get("https://ecom-kl8f.onrender.com/api/v1/user/profile", {
@@ -385,18 +354,6 @@ The data should be sent as JSON with the following fields:
     ```
 
 ### Example Usage
-#### cURL Command
-```bash
-curl -X PUT https://ecom-kl8f.onrender.com/api/v1/user/profile \
--H "Authorization: Bearer your_jwt_token" \
--H "Content-Type: application/json" \
--d '{
-    "name": "Updated Name",
-    "email": "updated@example.com",
-    "phone": "9876543210"
-}'
-```
-
 #### JavaScript (Axios)
 ```javascript
 axios.put("https://ecom-kl8f.onrender.com/api/v1/user/profile", 
@@ -513,13 +470,6 @@ The data should be sent as form-data with the following field:
     ```
 
 ### Example Usage
-#### cURL Command
-```bash
-curl -X PATCH https://ecom-kl8f.onrender.com/api/v1/user/profile-image \
--H "Authorization: Bearer your_jwt_token" \
--F "profileImage=@/path/to/image.jpg"
-```
-
 #### JavaScript (Axios)
 ```javascript
 const formData = new FormData();
@@ -605,17 +555,6 @@ The data should be sent as JSON with the following fields:
     ```
 
 ### Example Usage
-#### cURL Command
-```bash
-curl -X PUT https://ecom-kl8f.onrender.com/api/v1/user/password-update \
--H "Authorization: Bearer your_jwt_token" \
--H "Content-Type: application/json" \
--d '{
-    "oldPassword": "currentPassword123",
-    "newPassword": "newPassword123"
-}'
-```
-
 #### JavaScript (Axios)
 ```javascript
 axios.put("https://ecom-kl8f.onrender.com/api/v1/user/password-update",
@@ -687,15 +626,6 @@ The data should be sent as JSON with the following field:
     ```
 
 ### Example Usage
-#### cURL Command
-```bash
-curl -X POST https://ecom-kl8f.onrender.com/api/v1/user/password-forgot \
--H "Content-Type: application/json" \
--d '{
-    "email": "user@example.com"
-}'
-```
-
 #### JavaScript (Axios)
 ```javascript
 axios.post("https://ecom-kl8f.onrender.com/api/v1/user/password-forgot", {
@@ -766,16 +696,6 @@ The data should be sent as JSON with the following fields:
     ```
 
 ### Example Usage
-#### cURL Command
-```bash
-curl -X PUT https://ecom-kl8f.onrender.com/api/v1/user/password-reset/your_reset_token \
--H "Content-Type: application/json" \
--d '{
-    "newPassword": "newSecurePassword",
-    "confirmPassword": "newSecurePassword"
-}'
-```
-
 #### JavaScript (Axios)
 ```javascript
 axios.put(`https://ecom-kl8f.onrender.com/api/v1/user/password-reset/${resetToken}`, {
@@ -857,12 +777,6 @@ This endpoint allows administrators to retrieve a list of all users in the syste
     ```
 
 ### Example Usage
-#### cURL Command
-```bash
-curl -X GET https://ecom-kl8f.onrender.com/api/v1/admin/users \
--H "Authorization: Bearer your_jwt_token"
-```
-
 #### JavaScript (Axios)
 ```javascript
 axios.get("https://ecom-kl8f.onrender.com/api/v1/admin/users", {
@@ -945,12 +859,6 @@ This endpoint allows administrators to retrieve details of a specific user. Only
     ```
 
 ### Example Usage
-#### cURL Command
-```bash
-curl -X GET https://ecom-kl8f.onrender.com/api/v1/admin/users/user_id \
--H "Authorization: Bearer your_jwt_token"
-```
-
 #### JavaScript (Axios)
 ```javascript
 axios.get(`https://ecom-kl8f.onrender.com/api/v1/admin/users/${userId}`, {
@@ -1035,12 +943,6 @@ This endpoint allows administrators to delete a user account and their associate
     ```
 
 ### Example Usage
-#### cURL Command
-```bash
-curl -X DELETE https://ecom-kl8f.onrender.com/api/v1/admin/delete/user_id \
--H "Authorization: Bearer your_jwt_token"
-```
-
 #### JavaScript (Axios)
 ```javascript
 axios.delete(`https://ecom-kl8f.onrender.com/api/v1/admin/delete/${userId}`, {
