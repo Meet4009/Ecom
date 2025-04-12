@@ -1,4 +1,6 @@
 const Product = require("../models/productModel");
+const User = require("../models/userModel");
+const ErrorHandler = require("../utils/errorHandler");
 const { productValidationSchema, productUpdateValidationSchema } = require("../validators/productValidation");
 
 
@@ -235,6 +237,128 @@ exports.updateProductImages = async (req, res) => {
         res.status(500).json({ success: false, message: "Server Error", error: err.message });
     }
 }
+
+// ---------- Create/Update Product Review ---------- //
+exports.createProductReview = async (req, res) => {
+    try {
+        const { rating, comment } = req.body;
+
+        if (!rating || rating < 1 || rating > 5) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide a rating between 1 and 5"
+            });
+        }
+
+        const product = await Product.findById(req.params.id);
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: "Product not found"
+            });
+        }
+
+        // Check if user already reviewed
+        const existingReviewIndex = product.reviews.findIndex(
+            review => review.user.toString() === req.user._id.toString()
+        );
+
+        const review = {
+            user: req.user._id,
+            rating: Number(rating),
+            comment
+        };
+
+        if (existingReviewIndex >= 0) {
+            // Update existing review
+            product.reviews[existingReviewIndex] = review;
+        } else {
+            // Add new review
+            product.reviews.push(review);
+        }
+
+        await product.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Review added successfully"
+        });
+
+    } catch (err) {
+        console.error("Error creating review:", err);
+        res.status(500).json({
+            success: false,
+            message: "Failed to create review",
+            error: err.message
+        });
+    }
+};
+
+// ---------- Get Product Reviews ---------- //
+exports.getProductReviews = async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id)
+            .populate({
+                path: 'reviews.user',
+                select: 'name profileImage'
+            });
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: "Product not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            reviews: product.reviews
+        });
+
+    } catch (err) {
+        console.error("Error fetching reviews:", err);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch reviews",
+            error: err.message
+        });
+    }
+};
+
+// ---------- Delete Review ---------- //
+exports.deleteReview = async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: "Product not found"
+            });
+        }
+
+        // Filter out the review
+        product.reviews = product.reviews.filter(
+            review => review.user.toString() !== req.user._id.toString()
+        );
+
+        await product.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Review deleted successfully"
+        });
+
+    } catch (err) {
+        console.error("Error deleting review:", err);
+        res.status(500).json({
+            success: false,
+            message: "Failed to delete review",
+            error: err.message
+        });
+    }
+};
 
 
 

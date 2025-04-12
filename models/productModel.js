@@ -48,6 +48,11 @@ const productSchema = new mongoose.Schema({
         min: 0,
         max: 5
     },
+    status:{
+        type:String,
+        default:"Active",
+        enum:["Active","Inactive"]
+    },
     numReviews: { type: Number, default: 0 },
     reviews: [reviewSchema],
     createdUser: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
@@ -73,7 +78,7 @@ productSchema.index(
     }
 );
 
-// Add method to calculate average rating
+// Add method to calculate average rating+9
 productSchema.methods.calculateAverageRating = function() {
     if (this.reviews.length === 0) return 0;
     const sum = this.reviews.reduce((acc, review) => acc + review.rating, 0);

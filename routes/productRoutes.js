@@ -25,4 +25,9 @@ router.put('/:id', authMiddleware, authorizeRoles('admin'), productController.up
 // Route to delete a Product by ID (Admin only)
 router.delete('/:id', authMiddleware, authorizeRoles('admin'), productController.deleteProduct);
 
+// Review routes
+router.post('/:id/review', authMiddleware, productController.createProductReview);
+router.get('/:id/reviews', productController.getProductReviews);
+router.delete('/:id/review', authMiddleware, productController.deleteReview);
+
 module.exports = router;
