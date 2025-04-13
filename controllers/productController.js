@@ -2,7 +2,9 @@ const Product = require("../models/productModel");
 const User = require("../models/userModel");
 const ErrorHandler = require("../utils/errorHandler");
 const { productValidationSchema, productUpdateValidationSchema } = require("../validators/productValidation");
-
+const fs = require('fs');
+const fsPromises = require('fs').promises;
+const path = require('path');
 
 // ----------  Admin Dashboard ---------- //
 exports.adminDashboard = async (req, res, next) => {
@@ -199,12 +201,25 @@ exports.updateProduct = async (req, res) => {
 
 exports.deleteProduct = async (req, res) => {
     try {
-        const product = await Product.findByIdAndDelete(req.params.id);
+        const product = await Product.findById(req.params.id);
 
         if (!product) {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
 
+        // Delete all associated images
+        for (const image of product.productImages) {
+            try {
+                const imagePath = path.join(__dirname, '..', image.url);
+                await fsPromises.unlink(imagePath);
+            } catch (error) {
+                if (error.code !== 'ENOENT') {
+                    console.error("Error deleting image:", error);
+                }
+            }
+        }
+
+        await Product.findByIdAndDelete(req.params.id);
         res.status(200).json({ success: true, message: "Product deleted successfully" });
     } catch (err) {
         console.error("Error deleting product:", err);
@@ -213,30 +228,76 @@ exports.deleteProduct = async (req, res) => {
 }
 
 // ---------- Update Product Images --------- //
-exports.updateProductImages = async (req, res) => {
+exports.updateProductImages = async (req, res, next) => {
     try {
-        const product = await Product.findById(req.params.id);
-
-        if (!product) {
-            return res.status(404).json({ success: false, message: "Product not found" });
+        // Basic validation
+        if (!req.files || req.files.length === 0) {
+            return next(new ErrorHandler("Please upload at least one image", 400));
         }
 
-        // Map uploaded images
-        const images = req.files.map(file => ({
-            url: `/uploads/${file.filename}`,
+        // Validate each file
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+        
+        for (const file of req.files) {
+            if (file.size > maxSize) {
+                // Clean up all uploaded files
+                await Promise.all(req.files.map(f => fsPromises.unlink(f.path)));
+                return next(new ErrorHandler(`Image ${file.originalname} size should be less than 5MB`, 400));
+            }
+
+            if (!allowedTypes.includes(file.mimetype)) {
+                await Promise.all(req.files.map(f => fsPromises.unlink(f.path)));
+                return next(new ErrorHandler("Please upload only JPG, JPEG or PNG images", 400));
+            }
+        }
+
+        // Find product
+        const product = await Product.findById(req.params.id);
+        if (!product) {
+            await Promise.all(req.files.map(f => fsPromises.unlink(f.path)));
+            return next(new ErrorHandler("Product not found", 404));
+        }
+
+        // Delete all existing images
+        for (const oldImage of product.productImages) {
+            try {
+                const imagePath = path.join(__dirname, '..', oldImage.url);
+                await fsPromises.unlink(imagePath);
+            } catch (error) {
+                if (error.code !== 'ENOENT') {
+                    console.error("Error deleting old image:", error);
+                }
+            }
+        }
+
+        // Prepare new images data
+        const newImages = req.files.map(file => ({
+            url: `/uploads/products/${file.filename}`,
             public_id: file.filename
         }));
 
-        product.images.push(...images);
+        // Replace old images with new ones
+        product.productImages = newImages;
 
         await product.save();
 
-        res.status(200).json({ success: true, product });
+        res.status(200).json({
+            success: true,
+            message: "Product images updated successfully",
+            data: product
+        });
+
     } catch (err) {
-        console.error("Error updating product images:", err);
-        res.status(500).json({ success: false, message: "Server Error", error: err.message });
+        // Clean up uploaded files if error occurs
+        if (req.files) {
+            await Promise.all(req.files.map(file => 
+                fsPromises.unlink(file.path).catch(console.error)
+            ));
+        }
+        next(new ErrorHandler(`Server Error: ${err.message}`, 500));
     }
-}
+};
 
 // ---------- Create/Update Product Review ---------- //
 exports.createProductReview = async (req, res) => {

@@ -954,7 +954,7 @@ axios.delete(`https://ecom-kl8f.onrender.com/api/v1/admin/delete/${userId}`, {
 .catch(error => console.error(error.response.data));
 ```
 
-## Endpoint: `/api/product/create`
+## Endpoint: `/product/create`
 
 ### Description
 This endpoint allows administrators to create a new product with details including name, price, category, brand, stock, descriptions, FAQs, and multiple product images. Only accessible by users with admin role.
@@ -963,7 +963,7 @@ This endpoint allows administrators to create a new product with details includi
 `POST`
 
 ### URL
-`/api/product/create`
+`/product/create`
 
 ### Request Headers
 - `Authorization: Bearer <token>`
@@ -1120,7 +1120,7 @@ axios.post('https://ecom-kl8f.onrender.com/api/v1/product/create',
 .catch(error => console.error(error.response.data));
 ```
 
-## Endpoint: `/api/product`
+## Endpoint: /product`
 
 ### Description
 This endpoint allows retrieving all products in the system. No authentication is required to access this endpoint.
@@ -1129,7 +1129,7 @@ This endpoint allows retrieving all products in the system. No authentication is
 `GET`
 
 ### URL
-`/api/product`
+`/product`
 
 ### Request Headers
 None required
@@ -1206,7 +1206,7 @@ axios.get('https://ecom-kl8f.onrender.com/api/v1/product')
     .catch(error => console.error(error.response.data));
 ```
 
-## Endpoint: `/api/product/:id`
+## Endpoint: `/product/:id`
 
 ### Description
 This endpoint allows retrieving details of a specific product by its ID. No authentication is required to access this endpoint.
@@ -1215,7 +1215,7 @@ This endpoint allows retrieving details of a specific product by its ID. No auth
 `GET`
 
 ### URL
-`/api/product/:id`
+`/product/:id`
 
 ### Request Headers
 None required
@@ -1305,7 +1305,7 @@ axios.get(`https://ecom-kl8f.onrender.com/api/v1/product/${productId}`)
     .catch(error => console.error(error.response.data));
 ```
 
-## Endpoint: `/api/product/:id` (Update)
+## Endpoint: `/product/:id` (Update)
 
 ### Description
 This endpoint allows administrators to update an existing product's details. Only accessible by users with admin role.
@@ -1314,7 +1314,7 @@ This endpoint allows administrators to update an existing product's details. Onl
 `PUT`
 
 ### URL
-`/api/product/:id`
+`/product/:id`
 
 ### Request Headers
 - `Authorization: Bearer <token>`
@@ -1457,7 +1457,129 @@ axios.put(`https://ecom-kl8f.onrender.com/api/v1/product/${productId}`,
 .catch(error => console.error(error.response.data));
 ```
 
-## Endpoint: `/api/product/:id` (Delete)
+## Endpoint: `/product/:id/images`
+
+### Description
+This endpoint allows administrators to update product images. It supports multiple image uploads, replaces all existing images of the product, and validates file types and sizes.
+
+### HTTP Method
+`PUT`
+
+### URL
+`/product/:id/images`
+
+### Request Headers
+- `Authorization: Bearer <token>`
+- `Content-Type: multipart/form-data`
+
+### URL Parameters
+| Parameter | Type     | Description                     |
+|-----------|----------|---------------------------------|
+| `id`      | `string` | ID of the product to update     |
+
+### Request Body
+The data should be sent as form-data with the following field:
+
+| Field           | Type     | Required | Description                                     |
+|----------------|----------|----------|-------------------------------------------------|
+| `productImages` | `file[]` | Yes      | Up to 10 image files (JPG, JPEG, PNG). Max size: 5MB each |
+
+### Validations
+- At least one image must be uploaded
+- Each file size must not exceed 5MB
+- Only JPG, JPEG, and PNG file types are allowed
+- Maximum 10 images allowed
+- Authentication token must be valid
+- User must have admin role
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "message": "Product images updated successfully",
+      "data": {
+          "_id": "product_id",
+          "productImages": [
+              {
+                  "url": "/uploads/products/image-filename.jpg",
+                  "public_id": "image-filename"
+              }
+          ],
+          // ... other product fields
+      }
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `400 Bad Request`
+  - **Cases:**
+    - No images uploaded
+    - Invalid file type
+    - File size exceeds limit
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Please upload at least one image"
+    }
+    ```
+
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `403 Forbidden`
+  - **Reason:** User is not an admin
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Role (user) is not authorized to access this route"
+    }
+    ```
+
+- **Status Code:** `404 Not Found`
+  - **Reason:** Product not found
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Product not found"
+    }
+    ```
+
+### Example Usage
+#### JavaScript (Axios)
+```javascript
+const formData = new FormData();
+productImages.forEach(image => {
+    formData.append('productImages', image);
+});
+
+axios.put(`https://ecom-kl8f.onrender.com/api/v1/product/${productId}/images`, 
+    formData,
+    {
+        headers: {
+            "Authorization": "Bearer your_jwt_token",
+            "Content-Type": "multipart/form-data"
+        }
+    }
+)
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
+
+## Endpoint: `/product/:id` (Delete)
 
 ### Description
 This endpoint allows administrators to delete a specific product. Only accessible by users with admin role.
@@ -1466,7 +1588,7 @@ This endpoint allows administrators to delete a specific product. Only accessibl
 `DELETE`
 
 ### URL
-`/api/product/:id`
+`/product/:id`
 
 ### Request Headers
 - `Authorization: Bearer <token>`

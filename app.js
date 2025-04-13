@@ -25,6 +25,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/admin", userRoutes);
 app.use("/api/v1/product", productRoutes);
 
 // Error Middleware

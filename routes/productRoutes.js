@@ -25,6 +25,14 @@ router.put('/:id', authMiddleware, authorizeRoles('admin'), productController.up
 // Route to delete a Product by ID (Admin only)
 router.delete('/:id', authMiddleware, authorizeRoles('admin'), productController.deleteProduct);
 
+// Route to update product images (Admin only)
+router.put('/:id/images', 
+    authMiddleware, 
+    authorizeRoles('admin'), 
+    multipleProductUpload, 
+    productController.updateProductImages
+);
+
 // Review routes
 router.post('/:id/review', authMiddleware, productController.createProductReview);
 router.get('/:id/reviews', productController.getProductReviews);
