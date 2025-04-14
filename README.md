@@ -954,468 +954,6 @@ axios.delete(`https://ecom-kl8f.onrender.com/api/v1/admin/user/${userId}`, {
 .catch(error => console.error(error.response.data));
 ```
 
-## Endpoint: `/cart/:id`
-
-### Description
-This endpoint allows authenticated users to add or update products in their shopping cart. When adding a product, users can specify the quantity. If the product already exists in the cart, its quantity will be updated.
-
-### HTTP Method
-`POST`
-
-### URL
-`/cart/:id`
-
-### Request Headers
-- `Authorization: Bearer <token>` (Required)
-- `Content-Type: application/json`
-
-### URL Parameters
-| Parameter | Type     | Description                     |
-|-----------|----------|---------------------------------|
-| `id`      | `string` | ID of the product to add to cart|
-
-### Request Body
-| Field      | Type     | Required | Description                              |
-|------------|----------|----------|------------------------------------------|
-| `quantity` | `number` | No       | Quantity to add (default: 1, minimum: 1) |
-
-### Response
-
-#### Success Response
-- **Status Code:** `200 OK`
-- **Response Body:**
-  ```json
-  {
-      "success": true,
-      "message": "Item added to cart",
-      "cart": {
-          "_id": "cart_id",
-          "user": "user_id",
-          "items": [
-              {
-                  "product": {
-                      "_id": "product_id",
-                      "name": "Product Name",
-                      "price": 999,
-                      "productImages": [
-                          {
-                              "url": "image_url",
-                              "public_id": "image_id"
-                          }
-                      ]
-                  },
-                  "quantity": 2,
-                  "_id": "cart_item_id"
-              }
-          ],
-          "total": 1998
-      }
-  }
-  ```
-
-#### Error Responses
-- **Status Code:** `400 Bad Request`
-  - **Cases:**
-    - Invalid quantity
-    - Insufficient stock
-  - **Example Response:**
-    ```json
-    {
-        "success": false,
-        "message": "Please provide product ID and quantity should be at least 1"
-    }
-    ```
-
-- **Status Code:** `401 Unauthorized`
-  - **Reason:** No token provided or invalid token
-  - **Example Response:**
-    ```json
-    {
-        "success": false,
-        "message": "Not authorized, authentication failed"
-    }
-    ```
-
-- **Status Code:** `404 Not Found`
-  - **Reason:** Product not found
-  - **Example Response:**
-    ```json
-    {
-        "success": false,
-        "message": "Product not found"
-    }
-    ```
-
-### Example Usage
-#### JavaScript (Axios)
-```javascript
-axios.post(`https://ecom-kl8f.onrender.com/api/v1/cart/${productId}`,
-    {
-        quantity: 2
-    },
-    {
-        headers: {
-            "Authorization": "Bearer your_jwt_token"
-        }
-    }
-)
-.then(response => console.log(response.data))
-.catch(error => console.error(error.response.data));
-```
-
-## Endpoint: `/cart`
-
-### Description
-This endpoint allows authenticated users to retrieve their shopping cart details, including all items and the total cart value.
-
-### HTTP Method
-`GET`
-
-### URL
-`/cart`
-
-### Request Headers
-- `Authorization: Bearer <token>` (Required)
-
-### Response
-
-#### Success Response
-- **Status Code:** `200 OK`
-- **Response Body:**
-  ```json
-  {
-      "success": true,
-      "cart": {
-          "_id": "cart_id",
-          "user": "user_id",
-          "items": [
-              {
-                  "product": {
-                      "_id": "product_id",
-                      "name": "Product Name",
-                      "price": 999,
-                      "productImages": [
-                          {
-                              "url": "image_url",
-                              "public_id": "image_id"
-                          }
-                      ]
-                  },
-                  "quantity": 2,
-                  "_id": "cart_item_id"
-              }
-          ],
-          "total": 1998,
-          "createdAt": "2024-01-20T12:00:00.000Z",
-          "updatedAt": "2024-01-20T13:00:00.000Z"
-      }
-  }
-  ```
-
-#### Error Responses
-- **Status Code:** `401 Unauthorized`
-  - **Reason:** No token provided or invalid token
-  - **Example Response:**
-    ```json
-    {
-        "success": false,
-        "message": "Not authorized, authentication failed"
-    }
-    ```
-
-- **Status Code:** `500 Internal Server Error`
-  - **Reason:** Server error while fetching cart
-  - **Example Response:**
-    ```json
-    {
-        "success": false,
-        "message": "Server Error: error_message"
-    }
-    ```
-
-### Example Usage
-#### JavaScript (Axios)
-```javascript
-axios.get('https://ecom-kl8f.onrender.com/api/v1/cart', {
-    headers: {
-        "Authorization": "Bearer your_jwt_token"
-    }
-})
-.then(response => console.log(response.data))
-.catch(error => console.error(error.response.data));
-```
-
-## Endpoint: `/cart/update`
-
-### Description
-This endpoint allows authenticated users to update the quantity of a product in their cart or remove it if the quantity is set to 0.
-
-### HTTP Method
-`PUT`
-
-### URL
-`/cart/update`
-
-### Request Headers
-- `Authorization: Bearer <token>` (Required)
-- `Content-Type: application/json`
-
-### Request Body
-| Field       | Type     | Required | Description                                    |
-|-------------|----------|----------|------------------------------------------------|
-| `productId` | `string` | Yes      | ID of the product in cart to update           |
-| `quantity`  | `number` | Yes      | New quantity (0 to remove item, must be ≥ 0)  |
-
-### Response
-
-#### Success Response
-- **Status Code:** `200 OK`
-- **Response Body:**
-  ```json
-  {
-      "success": true,
-      "message": "Cart updated successfully",
-      "cart": {
-          "_id": "cart_id",
-          "user": "user_id",
-          "items": [
-              {
-                  "product": {
-                      "_id": "product_id",
-                      "name": "Product Name",
-                      "price": 999,
-                      "productImages": [
-                          {
-                              "url": "image_url",
-                              "public_id": "image_id"
-                          }
-                      ]
-                  },
-                  "quantity": 2,
-                  "_id": "cart_item_id"
-              }
-          ],
-          "total": 1998
-      }
-  }
-  ```
-
-#### Error Responses
-- **Status Code:** `400 Bad Request`
-  - **Cases:**
-    - Invalid quantity
-    - Insufficient stock
-  - **Example Response:**
-    ```json
-    {
-        "success": false,
-        "message": "Please provide product ID and valid quantity"
-    }
-    ```
-    ```json
-    {
-        "success": false,
-        "message": "Not enough stock available"
-    }
-    ```
-
-- **Status Code:** `401 Unauthorized`
-  - **Reason:** No token provided or invalid token
-  - **Example Response:**
-    ```json
-    {
-        "success": false,
-        "message": "Not authorized, authentication failed"
-    }
-    ```
-
-- **Status Code:** `404 Not Found`
-  - **Cases:**
-    - Cart not found
-    - Item not found in cart
-  - **Example Response:**
-    ```json
-    {
-        "success": false,
-        "message": "Cart not found"
-    }
-    ```
-    ```json
-    {
-        "success": false,
-        "message": "Item not found in cart"
-    }
-    ```
-
-### Example Usage
-#### JavaScript (Axios)
-```javascript
-axios.put("https://ecom-kl8f.onrender.com/api/v1/cart/update",
-    {
-        productId: "product_id",
-        quantity: 2
-    },
-    {
-        headers: {
-            "Authorization": "Bearer your_jwt_token"
-        }
-    }
-)
-.then(response => console.log(response.data))
-.catch(error => console.error(error.response.data));
-```
-
-## Endpoint: `/cart/remove/:productId`
-
-### Description
-This endpoint allows authenticated users to remove a specific product from their shopping cart.
-
-### HTTP Method
-`DELETE`
-
-### URL
-`/cart/remove/:productId`
-
-### Request Headers
-- `Authorization: Bearer <token>` (Required)
-
-### URL Parameters
-| Parameter    | Type     | Description                          |
-|-------------|----------|--------------------------------------|
-| `productId` | `string` | ID of the product to remove from cart|
-
-### Response
-
-#### Success Response
-- **Status Code:** `200 OK`
-- **Response Body:**
-  ```json
-  {
-      "success": true,
-      "message": "Item removed from cart",
-      "cart": {
-          "_id": "cart_id",
-          "user": "user_id",
-          "items": [
-              {
-                  "product": {
-                      "_id": "product_id",
-                      "name": "Product Name",
-                      "price": 999,
-                      "productImages": [
-                          {
-                              "url": "image_url",
-                              "public_id": "image_id"
-                          }
-                      ]
-                  },
-                  "quantity": 2,
-                  "_id": "cart_item_id"
-              }
-          ],
-          "total": 1998
-      }
-  }
-  ```
-
-#### Error Responses
-- **Status Code:** `401 Unauthorized`
-  - **Reason:** No token provided or invalid token
-  - **Example Response:**
-    ```json
-    {
-        "success": false,
-        "message": "Not authorized, authentication failed"
-    }
-    ```
-
-- **Status Code:** `404 Not Found`
-  - **Reason:** Cart not found
-  - **Example Response:**
-    ```json
-    {
-        "success": false,
-        "message": "Cart not found"
-    }
-    ```
-
-### Example Usage
-#### JavaScript (Axios)
-```javascript
-axios.delete(`https://ecom-kl8f.onrender.com/api/v1/cart/remove/${productId}`, {
-    headers: {
-        "Authorization": "Bearer your_jwt_token"
-    }
-})
-.then(response => console.log(response.data))
-.catch(error => console.error(error.response.data));
-```
-
-## Endpoint: `/cart/clear`
-
-### Description
-This endpoint allows authenticated users to remove all items from their shopping cart.
-
-### HTTP Method
-`DELETE`
-
-### URL
-`/cart/clear`
-
-### Request Headers
-- `Authorization: Bearer <token>` (Required)
-
-### Response
-
-#### Success Response
-- **Status Code:** `200 OK`
-- **Response Body:**
-  ```json
-  {
-      "success": true,
-      "message": "Cart cleared successfully",
-      "cart": {
-          "_id": "cart_id",
-          "user": "user_id",
-          "items": [],
-          "total": 0
-      }
-  }
-  ```
-
-#### Error Responses
-- **Status Code:** `401 Unauthorized`
-  - **Reason:** No token provided or invalid token
-  - **Example Response:**
-    ```json
-    {
-        "success": false,
-        "message": "Not authorized, authentication failed"
-    }
-    ```
-
-- **Status Code:** `404 Not Found`
-  - **Reason:** Cart not found
-  - **Example Response:**
-    ```json
-    {
-        "success": false,
-        "message": "Cart not found"
-    }
-    ```
-
-### Example Usage
-#### JavaScript (Axios)
-```javascript
-axios.delete("https://ecom-kl8f.onrender.com/api/v1/cart/clear", {
-    headers: {
-        "Authorization": "Bearer your_jwt_token"
-    }
-})
-.then(response => console.log(response.data))
-.catch(error => console.error(error.response.data));
-```
-
 ## Endpoint: `/product/create`
 
 ### Description
@@ -2118,6 +1656,469 @@ This endpoint allows administrators to delete a specific product. Only accessibl
 #### JavaScript (Axios)
 ```javascript
 axios.delete(`https://ecom-kl8f.onrender.com/api/v1/product/${productId}`, {
+    headers: {
+        "Authorization": "Bearer your_jwt_token"
+    }
+})
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
+
+
+## Endpoint: `/cart/:id`
+
+### Description
+This endpoint allows authenticated users to add or update products in their shopping cart. When adding a product, users can specify the quantity. If the product already exists in the cart, its quantity will be updated.
+
+### HTTP Method
+`POST`
+
+### URL
+`/cart/:id`
+
+### Request Headers
+- `Authorization: Bearer <token>` (Required)
+- `Content-Type: application/json`
+
+### URL Parameters
+| Parameter | Type     | Description                     |
+|-----------|----------|---------------------------------|
+| `id`      | `string` | ID of the product to add to cart|
+
+### Request Body
+| Field      | Type     | Required | Description                              |
+|------------|----------|----------|------------------------------------------|
+| `quantity` | `number` | No       | Quantity to add (default: 1, minimum: 1) |
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "message": "Item added to cart",
+      "cart": {
+          "_id": "cart_id",
+          "user": "user_id",
+          "items": [
+              {
+                  "product": {
+                      "_id": "product_id",
+                      "name": "Product Name",
+                      "price": 999,
+                      "productImages": [
+                          {
+                              "url": "image_url",
+                              "public_id": "image_id"
+                          }
+                      ]
+                  },
+                  "quantity": 2,
+                  "_id": "cart_item_id"
+              }
+          ],
+          "total": 1998
+      }
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `400 Bad Request`
+  - **Cases:**
+    - Invalid quantity
+    - Insufficient stock
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Please provide product ID and quantity should be at least 1"
+    }
+    ```
+
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `404 Not Found`
+  - **Reason:** Product not found
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Product not found"
+    }
+    ```
+
+### Example Usage
+#### JavaScript (Axios)
+```javascript
+axios.post(`https://ecom-kl8f.onrender.com/api/v1/cart/${productId}`,
+    {
+        quantity: 2
+    },
+    {
+        headers: {
+            "Authorization": "Bearer your_jwt_token"
+        }
+    }
+)
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
+
+## Endpoint: `/cart`
+
+### Description
+This endpoint allows authenticated users to retrieve their shopping cart details, including all items and the total cart value.
+
+### HTTP Method
+`GET`
+
+### URL
+`/cart`
+
+### Request Headers
+- `Authorization: Bearer <token>` (Required)
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "cart": {
+          "_id": "cart_id",
+          "user": "user_id",
+          "items": [
+              {
+                  "product": {
+                      "_id": "product_id",
+                      "name": "Product Name",
+                      "price": 999,
+                      "productImages": [
+                          {
+                              "url": "image_url",
+                              "public_id": "image_id"
+                          }
+                      ]
+                  },
+                  "quantity": 2,
+                  "_id": "cart_item_id"
+              }
+          ],
+          "total": 1998,
+          "createdAt": "2024-01-20T12:00:00.000Z",
+          "updatedAt": "2024-01-20T13:00:00.000Z"
+      }
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `500 Internal Server Error`
+  - **Reason:** Server error while fetching cart
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Server Error: error_message"
+    }
+    ```
+
+### Example Usage
+#### JavaScript (Axios)
+```javascript
+axios.get('https://ecom-kl8f.onrender.com/api/v1/cart', {
+    headers: {
+        "Authorization": "Bearer your_jwt_token"
+    }
+})
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
+
+## Endpoint: `/cart/update`
+
+### Description
+This endpoint allows authenticated users to update the quantity of a product in their cart or remove it if the quantity is set to 0.
+
+### HTTP Method
+`PUT`
+
+### URL
+`/cart/update`
+
+### Request Headers
+- `Authorization: Bearer <token>` (Required)
+- `Content-Type: application/json`
+
+### Request Body
+| Field       | Type     | Required | Description                                    |
+|-------------|----------|----------|------------------------------------------------|
+| `productId` | `string` | Yes      | ID of the product in cart to update           |
+| `quantity`  | `number` | Yes      | New quantity (0 to remove item, must be ≥ 0)  |
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "message": "Cart updated successfully",
+      "cart": {
+          "_id": "cart_id",
+          "user": "user_id",
+          "items": [
+              {
+                  "product": {
+                      "_id": "product_id",
+                      "name": "Product Name",
+                      "price": 999,
+                      "productImages": [
+                          {
+                              "url": "image_url",
+                              "public_id": "image_id"
+                          }
+                      ]
+                  },
+                  "quantity": 2,
+                  "_id": "cart_item_id"
+              }
+          ],
+          "total": 1998
+      }
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `400 Bad Request`
+  - **Cases:**
+    - Invalid quantity
+    - Insufficient stock
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Please provide product ID and valid quantity"
+    }
+    ```
+    ```json
+    {
+        "success": false,
+        "message": "Not enough stock available"
+    }
+    ```
+
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `404 Not Found`
+  - **Cases:**
+    - Cart not found
+    - Item not found in cart
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Cart not found"
+    }
+    ```
+    ```json
+    {
+        "success": false,
+        "message": "Item not found in cart"
+    }
+    ```
+
+### Example Usage
+#### JavaScript (Axios)
+```javascript
+axios.put("https://ecom-kl8f.onrender.com/api/v1/cart/update",
+    {
+        productId: "product_id",
+        quantity: 2
+    },
+    {
+        headers: {
+            "Authorization": "Bearer your_jwt_token"
+        }
+    }
+)
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
+
+## Endpoint: `/cart/remove/:productId`
+
+### Description
+This endpoint allows authenticated users to remove a specific product from their shopping cart.
+
+### HTTP Method
+`DELETE`
+
+### URL
+`/cart/remove/:productId`
+
+### Request Headers
+- `Authorization: Bearer <token>` (Required)
+
+### URL Parameters
+| Parameter    | Type     | Description                          |
+|-------------|----------|--------------------------------------|
+| `productId` | `string` | ID of the product to remove from cart|
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "message": "Item removed from cart",
+      "cart": {
+          "_id": "cart_id",
+          "user": "user_id",
+          "items": [
+              {
+                  "product": {
+                      "_id": "product_id",
+                      "name": "Product Name",
+                      "price": 999,
+                      "productImages": [
+                          {
+                              "url": "image_url",
+                              "public_id": "image_id"
+                          }
+                      ]
+                  },
+                  "quantity": 2,
+                  "_id": "cart_item_id"
+              }
+          ],
+          "total": 1998
+      }
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `404 Not Found`
+  - **Reason:** Cart not found
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Cart not found"
+    }
+    ```
+
+### Example Usage
+#### JavaScript (Axios)
+```javascript
+axios.delete(`https://ecom-kl8f.onrender.com/api/v1/cart/remove/${productId}`, {
+    headers: {
+        "Authorization": "Bearer your_jwt_token"
+    }
+})
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
+
+## Endpoint: `/cart/clear`
+
+### Description
+This endpoint allows authenticated users to remove all items from their shopping cart.
+
+### HTTP Method
+`DELETE`
+
+### URL
+`/cart/clear`
+
+### Request Headers
+- `Authorization: Bearer <token>` (Required)
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "message": "Cart cleared successfully",
+      "cart": {
+          "_id": "cart_id",
+          "user": "user_id",
+          "items": [],
+          "total": 0
+      }
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `404 Not Found`
+  - **Reason:** Cart not found
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Cart not found"
+    }
+    ```
+
+### Example Usage
+#### JavaScript (Axios)
+```javascript
+axios.delete("https://ecom-kl8f.onrender.com/api/v1/cart/clear", {
     headers: {
         "Authorization": "Bearer your_jwt_token"
     }
