@@ -87,9 +87,10 @@ exports.createProduct = async (req, res) => {
             });
         }
 
+        const baseURL = process.env.BASE_URL
         // Map uploaded images
         const productImages = req.files.map(file => ({
-            url: `/uploads/products/${file.filename}`,
+            url: `${baseURL}/uploads/products/${file.filename}`,
             public_id: file.filename
         }));
 
