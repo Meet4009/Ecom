@@ -870,7 +870,7 @@ axios.get(`https://ecom-kl8f.onrender.com/api/v1/admin/users/${userId}`, {
 .catch(error => console.error(error.response.data));
 ```
 
-## Endpoint: `/admin/delete/:id`
+## Endpoint: `/admin/user/:id`
 
 ### Description
 This endpoint allows administrators to delete a user account and their associated profile image. Only accessible by admin users.
@@ -879,7 +879,7 @@ This endpoint allows administrators to delete a user account and their associate
 `DELETE`
 
 ### URL
-`/admin/delete/:id`
+`/admin/user/:id`
 
 ### Request Headers
 - `Authorization: Bearer <token>`
@@ -945,7 +945,7 @@ This endpoint allows administrators to delete a user account and their associate
 ### Example Usage
 #### JavaScript (Axios)
 ```javascript
-axios.delete(`https://ecom-kl8f.onrender.com/api/v1/admin/delete/${userId}`, {
+axios.delete(`https://ecom-kl8f.onrender.com/api/v1/admin/user/${userId}`, {
     headers: {
         "Authorization": "Bearer your_jwt_token"
     }
