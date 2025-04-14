@@ -1664,6 +1664,258 @@ axios.delete(`https://ecom-kl8f.onrender.com/api/v1/product/${productId}`, {
 .catch(error => console.error(error.response.data));
 ```
 
+## Endpoint: `/product/:id/review`
+
+### Description
+This endpoint allows authenticated users to add or update their review for a specific product. Users can provide a rating and comment for the product.
+
+### HTTP Method
+`POST`
+
+### URL
+`/product/:id/review`
+
+### Request Headers
+- `Authorization: Bearer <token>` (Required)
+- `Content-Type: application/json`
+
+### URL Parameters
+| Parameter | Type     | Description                     |
+|-----------|----------|---------------------------------|
+| `id`      | `string` | ID of the product to review     |
+
+### Request Body
+| Field     | Type     | Required | Description                              |
+|-----------|----------|----------|------------------------------------------|
+| `rating`  | `number` | Yes      | Rating value (1-5)                      |
+| `comment` | `string` | Yes      | Review comment                          |
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "message": "Review added successfully"
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `400 Bad Request`
+  - **Reason:** Invalid rating value
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Please provide a rating between 1 and 5"
+    }
+    ```
+
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `404 Not Found`
+  - **Reason:** Product not found
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Product not found"
+    }
+    ```
+
+### Example Usage
+#### JavaScript (Axios)
+```javascript
+axios.post(`https://ecom-kl8f.onrender.com/api/v1/product/${productId}/review`,
+    {
+        rating: 4,
+        comment: "Great product! Would recommend."
+    },
+    {
+        headers: {
+            "Authorization": "Bearer your_jwt_token"
+        }
+    }
+)
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
+
+## Endpoint: `/product/:id/review` (Update)
+
+### Description
+This endpoint allows authenticated users to update their existing review for a product. Users can modify the rating and comment of their review.
+
+### HTTP Method
+`PUT`
+
+### URL
+`/product/:id/review`
+
+### Request Headers
+- `Authorization: Bearer <token>` (Required)
+- `Content-Type: application/json`
+
+### URL Parameters
+| Parameter | Type     | Description                     |
+|-----------|----------|---------------------------------|
+| `id`      | `string` | ID of the product to update review|
+
+### Request Body
+| Field     | Type     | Required | Description                              |
+|-----------|----------|----------|------------------------------------------|
+| `rating`  | `number` | Yes      | New rating value (1-5)                  |
+| `comment` | `string` | Yes      | New review comment                      |
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "message": "Review updated successfully"
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `400 Bad Request`
+  - **Reason:** Invalid rating value or no existing review found
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Please provide a rating between 1 and 5"
+    }
+    ```
+    ```json
+    {
+        "success": false,
+        "message": "You haven't reviewed this product yet"
+    }
+    ```
+
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `404 Not Found`
+  - **Reason:** Product not found
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Product not found"
+    }
+    ```
+
+### Example Usage
+#### JavaScript (Axios)
+```javascript
+axios.put(`https://ecom-kl8f.onrender.com/api/v1/product/${productId}/review`,
+    {
+        rating: 5,
+        comment: "Updated review: Even better than I initially thought!"
+    },
+    {
+        headers: {
+            "Authorization": "Bearer your_jwt_token"
+        }
+    }
+)
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
+
+## Endpoint: `/product/:id/reviews`
+
+### Description
+This endpoint allows retrieving all reviews for a specific product along with reviewer details.
+
+### HTTP Method
+`GET`
+
+### URL
+`/product/:id/reviews`
+
+### Request Headers
+None required
+
+### URL Parameters
+| Parameter | Type     | Description                     |
+|-----------|----------|---------------------------------|
+| `id`      | `string` | ID of the product to get reviews|
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "reviews": [
+          {
+              "user": {
+                  "_id": "user_id",
+                  "name": "User Name",
+                  "profileImage": "profile_image_url"
+              },
+              "rating": 4,
+              "comment": "Great product!",
+              "createdAt": "2024-01-20T12:00:00.000Z",
+              "_id": "review_id"
+          }
+      ]
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `404 Not Found`
+  - **Reason:** Product not found
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Product not found"
+    }
+    ```
+
+- **Status Code:** `500 Internal Server Error`
+  - **Reason:** Server error while fetching reviews
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Failed to fetch reviews",
+        "error": "error_message"
+    }
+    ```
+
+### Example Usage
+#### JavaScript (Axios)
+```javascript
+axios.get(`https://ecom-kl8f.onrender.com/api/v1/product/${productId}/reviews`)
+    .then(response => console.log(response.data))
+    .catch(error => console.error(error.response.data));
+```
 
 ## Endpoint: `/cart/:id`
 
