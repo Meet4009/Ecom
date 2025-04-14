@@ -18,7 +18,7 @@ exports.adminDashboard = async (req, res, next) => {
         const totalProducts = await Product.countDocuments();
         const totalActiveProducts = await Product.countDocuments({ status: "active" });
         const totalInactiveProducts = await Product.countDocuments({ status: "inactive" });
-        const productsAddedToday = await Product.countDocuments({ 
+        const productsAddedToday = await Product.countDocuments({
             createdAt: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) }
         });
 
@@ -116,7 +116,9 @@ exports.createProduct = async (req, res) => {
 exports.getAllProducts = async (req, res) => {
     try {
         const products = await Product.find().populate("createdUser", "name email");
-        res.status(200).json({ success: true, products });
+        const TotalProduct = await Product.countDocuments()
+
+        res.status(200).json({ success: true, TotalProduct, products });
     } catch (err) {
         console.error("Error fetching products:", err);
         res.status(500).json({ success: false, message: "Server Error", error: err.message });
@@ -239,7 +241,7 @@ exports.updateProductImages = async (req, res, next) => {
         // Validate each file
         const maxSize = 5 * 1024 * 1024; // 5MB
         const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-        
+
         for (const file of req.files) {
             if (file.size > maxSize) {
                 // Clean up all uploaded files
@@ -292,7 +294,7 @@ exports.updateProductImages = async (req, res, next) => {
     } catch (err) {
         // Clean up uploaded files if error occurs
         if (req.files) {
-            await Promise.all(req.files.map(file => 
+            await Promise.all(req.files.map(file =>
                 fsPromises.unlink(file.path).catch(console.error)
             ));
         }

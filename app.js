@@ -9,6 +9,7 @@ const path = require('path');
 const userRoutes = require("./routes/authRoutes");
 const productRoutes = require("./routes/productRoutes");
 const errorMiddleware = require("./middlewares/error");
+const cartRoutes = require("./routes/cartRoutes");
 
 // Middleware.
 app.use(express.json()); // for parsing JSON
@@ -27,6 +28,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/admin", userRoutes);
 app.use("/api/v1/product", productRoutes);
+app.use("/api/v1/cart", cartRoutes);
 
 // Error Middleware
 app.use(errorMiddleware);
