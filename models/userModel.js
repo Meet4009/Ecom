@@ -54,27 +54,7 @@ const userSchema = new mongoose.Schema({
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
-    watchlist: [
-        {
-            productId: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'Product',
-                required: true
-            },
-            name: {
-                type: String,
-                required: true
-            },
-            price: {
-                type: Number,
-                required: true
-            },
-            ratings: {
-                type: Number,
-                required: true
-            }
-        }
-    ]
+
 }, {
     timestamps: true
 });
@@ -87,12 +67,12 @@ userSchema.pre("save", async function (next) {
 });
 
 // Compares entered password with hashed password
-userSchema.methods.comparePassword = function(enteredPassword) {
+userSchema.methods.comparePassword = function (enteredPassword) {
     return bcrypt.compare(enteredPassword, this.password);
 };
 
 // Generates a secure, 10-minute expiration reset token for password reset
-userSchema.methods.getResetPasswordToken = function() {
+userSchema.methods.getResetPasswordToken = function () {
     const resetToken = crypto.randomBytes(32).toString('hex'); // Increased to 32 bytes for better security
     this.resetPasswordToken = crypto
         .createHash('sha256')
@@ -103,7 +83,7 @@ userSchema.methods.getResetPasswordToken = function() {
 };
 
 // Generates a JWT token for user authentication user ID and secret key
-userSchema.methods.generateToken = function() {
+userSchema.methods.generateToken = function () {
     return jwt.sign(
         { id: this._id },
         process.env.JWT_SECRET,

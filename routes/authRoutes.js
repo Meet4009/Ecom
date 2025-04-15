@@ -23,11 +23,6 @@ router.put('/user/password-update', authMiddleware, userController.updatePasswor
 router.post('/user/password-forgot', userController.forgotPassword);
 router.put('/user/password-reset/:token', userController.resetPassword);
 
-// Watchlist routes
-router.post('/user/watchlist/:id', authMiddleware, userController.addToWatchlist);
-router.get('/user/watchlist', authMiddleware, userController.getWatchlist);
-router.delete('/user/watchlist/:id', authMiddleware, userController.removeFromWatchlist);
-
 
 // ✅ Admin Only Routes
 router.get('/admin/users', authMiddleware, authorizeRoles("admin"), userController.getAllUsers);
