@@ -2600,3 +2600,453 @@ axios.delete(`https://ecom-kl8f.onrender.com/api/auth/user/watchlist/${productId
 .then(response => console.log(response.data))
 .catch(error => console.error(error.response.data));
 ```
+
+
+## Endpoint: `/order/create`
+
+### Description
+This endpoint allows authenticated users to create a new order. It processes the order items, verifies stock availability, calculates the total amount, updates product stock, and clears the user's cart upon successful order creation.
+
+### HTTP Method
+`POST`
+
+### URL
+`/order/create`
+
+### Request Headers
+- `Authorization: Bearer <token>` (Required)
+- `Content-Type: application/json`
+
+### Request Body
+The data should be sent as JSON with the following fields:
+
+| Field              | Type     | Required | Description                              |
+|-------------------|----------|----------|------------------------------------------|
+| `items`           | `array`  | Yes      | Array of order items                     |
+| `shippingAddress` | `object` | Yes      | Shipping address details                 |
+| `paymentInfo`     | `object` | Yes      | Payment information                      |
+
+#### items Array Structure
+```json
+"items": [
+    {
+        "product": "product_id",
+        "quantity": 2
+    }
+]
+```
+
+#### shippingAddress Object Structure
+```json
+"shippingAddress": {
+    "street": "123 Main St",
+    "city": "Cityville",
+    "state": "State",
+    "pinCode": "123456",
+    "phone": "1234567890"
+}
+```
+
+#### paymentInfo Object Structure
+```json
+"paymentInfo": {
+    "id": "payment_id",
+    "status": "success",
+    "type": "card"
+}
+```
+
+### Response
+
+#### Success Response
+- **Status Code:** `201 Created`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "order": {
+          "_id": "order_id",
+          "user": "user_id",
+          "items": [
+              {
+                  "product": "product_id",
+                  "name": "Product Name",
+                  "quantity": 2,
+                  "price": 999
+              }
+          ],
+          "shippingAddress": {
+              "street": "123 Main St",
+              "city": "Cityville",
+              "state": "State",
+              "pinCode": "123456",
+              "phone": "1234567890"
+          },
+          "totalAmount": 1998,
+          "paymentInfo": {
+              "id": "payment_id",
+              "status": "success",
+              "type": "card"
+          },
+          "status": "pending",
+          "paidAt": "2024-01-20T12:00:00.000Z",
+          "createdAt": "2024-01-20T12:00:00.000Z"
+      }
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `400 Bad Request`
+  - **Cases:**
+    - Validation error
+    - Insufficient stock
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Insufficient stock for Product Name"
+    }
+    ```
+
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `404 Not Found`
+  - **Reason:** Product not found
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Product not found: product_id"
+    }
+    ```
+
+### Example Usage
+#### JavaScript (Axios)
+```javascript
+axios.post("https://ecom-kl8f.onrender.com/api/order/create",
+    {
+        items: [
+            {
+                product: "product_id",
+                quantity: 2
+            }
+        ],
+        shippingAddress: {
+            street: "123 Main St",
+            city: "Cityville",
+            state: "State",
+            pinCode: "123456",
+            phone: "1234567890"
+        },
+        paymentInfo: {
+            id: "payment_id",
+            status: "success",
+            type: "card"
+        }
+    },
+    {
+        headers: {
+            "Authorization": "Bearer your_jwt_token"
+        }
+    }
+)
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
+
+## Endpoint: `/order/me`
+
+### Description
+This endpoint allows authenticated users to retrieve all their orders. The orders are sorted by creation date with the most recent orders appearing first.
+
+### HTTP Method
+`GET`
+
+### URL
+`/order/me`
+
+### Request Headers
+- `Authorization: Bearer <token>` (Required)
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "orders": [
+          {
+              "_id": "order_id",
+              "user": "user_id",
+              "items": [
+                  {
+                      "product": "product_id",
+                      "name": "Product Name",
+                      "quantity": 2,
+                      "price": 999
+                  }
+              ],
+              "shippingAddress": {
+                  "street": "123 Main St",
+                  "city": "Cityville",
+                  "state": "State",
+                  "pinCode": "123456",
+                  "phone": "1234567890"
+              },
+              "totalAmount": 1998,
+              "paymentInfo": {
+                  "id": "payment_id",
+                  "status": "success",
+                  "type": "card"
+              },
+              "status": "pending",
+              "paidAt": "2024-01-20T12:00:00.000Z",
+              "createdAt": "2024-01-20T12:00:00.000Z"
+          }
+          // ... more orders
+      ]
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `500 Internal Server Error`
+  - **Reason:** Server error while fetching orders
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Server Error: error_message"
+    }
+    ```
+
+### Example Usage
+#### JavaScript (Axios)
+```javascript
+axios.get("https://ecom-kl8f.onrender.com/api/order/me", {
+    headers: {
+        "Authorization": "Bearer your_jwt_token"
+    }
+})
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
+
+
+## Endpoint: `/order/:id`
+
+### Description
+This endpoint allows authenticated users to retrieve details of a specific order. The response includes the order details along with the user information.
+
+### HTTP Method
+`GET`
+
+### URL
+`/order/:id`
+
+### Request Headers
+- `Authorization: Bearer <token>` (Required)
+
+### URL Parameters
+| Parameter | Type     | Description                     |
+|-----------|----------|---------------------------------|
+| `id`      | `string` | ID of the order to retrieve     |
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "order": {
+          "_id": "order_id",
+          "user": {
+              "_id": "user_id",
+              "name": "User Name",
+              "email": "user@example.com"
+          },
+          "items": [
+              {
+                  "product": "product_id",
+                  "name": "Product Name",
+                  "quantity": 2,
+                  "price": 999
+              }
+          ],
+          "shippingAddress": {
+              "street": "123 Main St",
+              "city": "Cityville",
+              "state": "State",
+              "pinCode": "123456",
+              "phone": "1234567890"
+          },
+          "totalAmount": 1998,
+          "paymentInfo": {
+              "id": "payment_id",
+              "status": "success",
+              "type": "card"
+          },
+          "status": "pending",
+          "paidAt": "2024-01-20T12:00:00.000Z",
+          "createdAt": "2024-01-20T12:00:00.000Z"
+      }
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `404 Not Found`
+  - **Reason:** Order not found
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Order not found"
+    }
+    ```
+
+### Example Usage
+#### JavaScript (Axios)
+```javascript
+axios.get(`https://ecom-kl8f.onrender.com/api/order/${orderId}`, {
+    headers: {
+        "Authorization": "Bearer your_jwt_token"
+    }
+})
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
+
+## Endpoint: `/order/admin/orders`
+
+### Description
+This endpoint allows administrators to retrieve all orders in the system. It provides a list of all orders along with the total amount across all orders. Only accessible by users with admin role.
+
+### HTTP Method
+`GET`
+
+### URL
+`/order/admin/orders`
+
+### Request Headers
+- `Authorization: Bearer <token>` (Required)
+
+### Response
+
+#### Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+  ```json
+  {
+      "success": true,
+      "totalAmount": 5994,
+      "orders": [
+          {
+              "_id": "order_id",
+              "user": {
+                  "_id": "user_id",
+                  "name": "User Name",
+                  "email": "user@example.com"
+              },
+              "items": [
+                  {
+                      "product": "product_id",
+                      "name": "Product Name",
+                      "quantity": 2,
+                      "price": 999
+                  }
+              ],
+              "shippingAddress": {
+                  "street": "123 Main St",
+                  "city": "Cityville",
+                  "state": "State",
+                  "pinCode": "123456",
+                  "phone": "1234567890"
+              },
+              "totalAmount": 1998,
+              "paymentInfo": {
+                  "id": "payment_id",
+                  "status": "success",
+                  "type": "card"
+              },
+              "status": "pending",
+              "paidAt": "2024-01-20T12:00:00.000Z",
+              "createdAt": "2024-01-20T12:00:00.000Z"
+          }
+          // ... more orders
+      ]
+  }
+  ```
+
+#### Error Responses
+- **Status Code:** `401 Unauthorized`
+  - **Reason:** No token provided or invalid token
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Not authorized, authentication failed"
+    }
+    ```
+
+- **Status Code:** `403 Forbidden`
+  - **Reason:** User is not an admin
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Role (user) is not authorized to access this route"
+    }
+    ```
+
+- **Status Code:** `500 Internal Server Error`
+  - **Reason:** Server error while fetching orders
+  - **Example Response:**
+    ```json
+    {
+        "success": false,
+        "message": "Server Error: error_message"
+    }
+    ```
+
+### Example Usage
+#### JavaScript (Axios)
+```javascript
+axios.get("https://ecom-kl8f.onrender.com/api/order/admin/orders", {
+    headers: {
+        "Authorization": "Bearer your_jwt_token"
+    }
+})
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
