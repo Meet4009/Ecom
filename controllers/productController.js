@@ -45,7 +45,6 @@ exports.adminDashboard = async (req, res, next) => {
     }
 }
 
-
 // ---------- Create Product ---------- //
 exports.createProduct = async (req, res) => {
     try {
@@ -126,7 +125,6 @@ exports.getAllProducts = async (req, res) => {
 };
 
 // ---------- Get Single Product --------- //
-
 exports.getSingleProduct = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id).populate("createdUser", "name email");
@@ -143,7 +141,6 @@ exports.getSingleProduct = async (req, res) => {
 }
 
 // ---------- Update Product --------- //
-
 exports.updateProduct = async (req, res) => {
     try {
         // Create update payload only with fields present in request body
@@ -201,7 +198,6 @@ exports.updateProduct = async (req, res) => {
 }
 
 // ---------- Delete Product --------- //
-
 exports.deleteProduct = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);

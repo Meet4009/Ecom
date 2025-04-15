@@ -1,5 +1,6 @@
 const User = require('../models/userModel');
 const Product = require('../models/productModel');
+const Watchlist = require('../models/watchlistModel');
 const ErrorHandler = require("../utils/errorHandler");
 const sendEmail = require("../utils/sendEmail.js");
 const crypto = require("crypto");
@@ -286,6 +287,7 @@ exports.forgotPassword = async (req, res, next) => {
 };
 
 // ----------  Reset Password ---------- //
+
 exports.resetPassword = async (req, res, next) => {
     try {
         const { newPassword, confirmPassword } = req.body;
@@ -329,8 +331,90 @@ exports.resetPassword = async (req, res, next) => {
     }
 };
 
-//////////////////////////////////////////// ADMIN SIDE ////////////////////////////////////////////
+// ----------  Watchlist Controls ---------- //
 
+exports.addToWatchlist = async (req, res, next) => {
+    try {
+        const productId = req.params.productId;
+
+        // Check if product exists
+        const product = await Product.findById(productId);
+        if (!product) {
+            return next(new ErrorHandler("Product not found", 404));
+        }
+
+        // Find or create watchlist
+        let watchlist = await Watchlist.findOne({ user: req.user._id });
+        if (!watchlist) {
+            watchlist = new Watchlist({ user: req.user._id, products: [] });
+        }
+
+        // Check if product is already in watchlist
+        if (watchlist.products.includes(productId)) {
+            return next(new ErrorHandler("Product already in watchlist", 400));
+        }
+
+        watchlist.products.push(productId);
+        await watchlist.save();
+        await watchlist.populate('products', 'name price ratings productImages ratings');
+
+        res.status(200).json({
+            success: true,
+            message: "Product added to watchlist",
+            data: watchlist
+        });
+    } catch (err) {
+        next(new ErrorHandler(`Server Error: ${err.message}`, 500));
+    }
+};
+
+exports.getWatchlist = async (req, res, next) => {
+    try {
+        let watchlist = await Watchlist.findOne({ user: req.user._id })
+            .populate('products', 'name price productImages');
+
+        if (!watchlist) {
+            watchlist = { products: [] };
+        }
+
+        res.status(200).json({
+            success: true,
+            data: watchlist
+        });
+    } catch (err) {
+        next(new ErrorHandler(`Server Error: ${err.message}`, 500));
+    }
+};
+
+exports.removeFromWatchlist = async (req, res, next) => {
+    try {
+        const productId = req.params.productId;
+        
+        const watchlist = await Watchlist.findOne({ user: req.user._id });
+        if (!watchlist) {
+            return next(new ErrorHandler("Watchlist not found", 404));
+        }
+
+        watchlist.products = watchlist.products.filter(
+            product => product.toString() !== productId
+        );
+
+        await watchlist.save();
+        await watchlist.populate('products', 'name price ratings productImages ');
+
+        res.status(200).json({
+            success: true,
+            message: "Product removed from watchlist",
+            data: watchlist
+        });
+    } catch (err) {
+        next(new ErrorHandler(`Server Error: ${err.message}`, 500));
+    }
+};
+
+
+
+//////////////////////////////////////////// ADMIN SIDE ////////////////////////////////////////////
 
 // ----------  Get All Users ---------- //
 exports.getAllUsers = async (req, res, next) => {
@@ -369,30 +453,28 @@ exports.getUserDetails = async (req, res, next) => {
     }
 }
 
-// // ----------  Update User ---------- //
+ // ----------  Update User ---------- //
+exports.updateUser = async (req, res, next) => {
+    try {
+        const { name, email, phone, role } = req.body;
 
-// exports.updateUser = async (req, res, next) => {
-//     try {
-//         const { name, email, phone, role } = req.body;
+        // Validate input (exclude profileImage from validation)
+        const { error } = registerValidation(req.body);
+        if (error) return next(new ErrorHandler(error.details[0].message, 400));
 
-//         // Validate input (exclude profileImage from validation)
-//         const { error } = registerValidation(req.body);
-//         if (error) return next(new ErrorHandler(error.details[0].message, 400));
+        // Check if user exists
+        const userExists = await User.findById(req.params.id);
+        if (!userExists) return next(new ErrorHandler("User not found", 404));
 
-//         // Check if user exists
-//         const userExists = await User.findById(req.params.id);
-//         if (!userExists) return next(new ErrorHandler("User not found", 404));
+        // Update user details
+        const updatedUser = await User.findByIdAndUpdate(req.params.id, { name, email, phone, role }, { new: true });
 
-//         // Update user details
-//         const updatedUser = await User.findByIdAndUpdate(req.params.id, { name, email, phone, role }, { new: true });
+        res.status(200).json({ success: true, message: "User updated successfully", data: updatedUser });
 
-//         res.status(200).json({ success: true, message: "User updated successfully", data: updatedUser });
-
-//     } catch (err) {
-//         next(new ErrorHandler(`Server Error: ${err.message}`, 500));
-//     }
-// }
-
+    } catch (err) {
+        next(new ErrorHandler(`Server Error: ${err.message}`, 500));
+    }
+}
 
 // ----------  Delete User ---------- //
 exports.deleteUser = async (req, res, next) => {

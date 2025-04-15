@@ -37,7 +37,7 @@ exports.addToCart = async (req, res, next) => {
         }
 
         // Check if product already in cart
-        const existingItem = cart.items.find(item => 
+        const existingItem = cart.items.find(item =>
             item.product.toString() === productId
         );
 
@@ -102,7 +102,7 @@ exports.updateCartItem = async (req, res, next) => {
             });
         }
 
-        const itemIndex = cart.items.findIndex(item => 
+        const itemIndex = cart.items.findIndex(item =>
             item.product.toString() === productId
         );
 
@@ -152,7 +152,7 @@ exports.removeFromCart = async (req, res, next) => {
             });
         }
 
-        cart.items = cart.items.filter(item => 
+        cart.items = cart.items.filter(item =>
             item.product.toString() !== productId
         );
 

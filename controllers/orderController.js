@@ -4,6 +4,8 @@ const Cart = require('../models/cartModel');
 const ErrorHandler = require('../utils/errorHandler');
 const { orderValidationSchema } = require('../validators/orderValidation');
 
+//////////////////////////////////////////// USER SIDE ////////////////////////////////////////////
+
 exports.createOrder = async (req, res, next) => {
     try {
         const { error } = orderValidationSchema.validate(req.body);
@@ -89,7 +91,8 @@ exports.getMyOrders = async (req, res, next) => {
     }
 };
 
-// Admin Controllers
+//////////////////////////////////////////// ADMIN SIDE ////////////////////////////////////////////
+
 exports.getAllOrders = async (req, res, next) => {
     try {
         const orders = await Order.find()
