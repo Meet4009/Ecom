@@ -21,7 +21,11 @@ const cartSchema = new mongoose.Schema({
         unique: true
     },
     items: [cartItemSchema],
-    total: {
+    totalQuantity:{
+        type: Number,
+        default: 0
+    },
+    totalPrice: {
         type: Number,
         default: 0
     }
@@ -29,7 +33,7 @@ const cartSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Pre-save middleware to calculate total
+// Pre-save middleware to calculate totalPrice
 cartSchema.pre('save', async function(next) {
     const populated = await this.populate('items.product', 'price');
     this.total = populated.items.reduce((sum, item) => {
@@ -37,5 +41,11 @@ cartSchema.pre('save', async function(next) {
     }, 0);
     next();
 });
-
+// Pre-save middleware to calculate totalQuantity
+cartSchema.pre('save', function(next) {
+    this.totalQuantity = this.items.reduce((sum, item) => {
+        return sum + item.quantity;
+    }, 0);
+    next();
+});
 module.exports = mongoose.model('Cart', cartSchema);

@@ -9,30 +9,30 @@ const { upload } = require("../middlewares/upload"); // Destructure upload from 
 const router = express.Router();
 
 // ✅ User Authentication Routes
-router.post('/register', userController.register);
-router.post('/login', userController.login);
-router.get('/logout', authMiddleware, userController.logout);
+router.post('/user/register', userController.register);
+router.post('/user/login', userController.login);
+router.get('/user/logout', authMiddleware, userController.logout);
 
 // ✅ User Profile Routes
-router.get('/profile', authMiddleware, userController.getProfile);
-router.put('/profile', authMiddleware, userController.updateProfile);
-router.patch('/profile-image', authMiddleware, upload, userController.updateProfileImage);
+router.get('/user/profile', authMiddleware, userController.getProfile);
+router.put('/user/profile', authMiddleware, userController.updateProfile);
+router.patch('/user/profile-image', authMiddleware, upload, userController.updateProfileImage);
 
 // ✅ User Password Routes
-router.put('/password-update', authMiddleware, userController.updatePassword);
-router.post('/password-forgot', userController.forgotPassword);
-router.put('/password-reset/:token', userController.resetPassword);
+router.put('/user/password-update', authMiddleware, userController.updatePassword);
+router.post('/user/password-forgot', userController.forgotPassword);
+router.put('/user/password-reset/:token', userController.resetPassword);
 
 // Watchlist routes
-router.post('/watchlist/:id', authMiddleware, userController.addToWatchlist);
-router.get('/watchlist', authMiddleware, userController.getWatchlist);
-router.delete('/watchlist/:id', authMiddleware, userController.removeFromWatchlist);
+router.post('/user/watchlist/:id', authMiddleware, userController.addToWatchlist);
+router.get('/user/watchlist', authMiddleware, userController.getWatchlist);
+router.delete('/user/watchlist/:id', authMiddleware, userController.removeFromWatchlist);
 
 
 // ✅ Admin Only Routes
-router.get('/users', authMiddleware, authorizeRoles("admin"), userController.getAllUsers);
-router.get('/user/:id', authMiddleware, authorizeRoles("admin"), userController.getUserDetails);
-// router.put('/user/:id', authMiddleware, authorizeRoles("admin"), userController.updateUser);
-router.delete('/user/:id', authMiddleware, authorizeRoles("admin"), userController.deleteUser);
+router.get('/admin/users', authMiddleware, authorizeRoles("admin"), userController.getAllUsers);
+router.get('/admin/user/:id', authMiddleware, authorizeRoles("admin"), userController.getUserDetails);
+// router.put('/admin/user/:id', authMiddleware, authorizeRoles("admin"), userController.updateUser);
+router.delete('/admin/user/:id', authMiddleware, authorizeRoles("admin"), userController.deleteUser);
 
 module.exports = router;

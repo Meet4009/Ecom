@@ -6,7 +6,7 @@ const cors = require('cors');
 const path = require('path');
 
 // Route Imports
-const userRoutes = require("./routes/authRoutes");
+const authRoutes = require("./routes/authRoutes");
 const productRoutes = require("./routes/productRoutes");
 const errorMiddleware = require("./middlewares/error");
 const cartRoutes = require("./routes/cartRoutes");
@@ -25,10 +25,9 @@ app.use(cors({
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
-app.use("/api/v1/user", userRoutes);
-app.use("/api/v1/admin", userRoutes);
-app.use("/api/v1/product", productRoutes);
-app.use("/api/v1/cart", cartRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/product", productRoutes);
+app.use("/api/cart", cartRoutes);
 
 // Error Middleware
 app.use(errorMiddleware);

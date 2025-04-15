@@ -430,6 +430,10 @@ exports.addToWatchlist = async (req, res, next) => {
         const user = await User.findById(req.user.id);
         const productId = req.params.id;
 
+        if (!productId) {
+            return next(new ErrorHandler("Product ID is required", 400));
+        }
+
         // Check if product exists
         const product = await Product.findById(productId);
         if (!product) {
@@ -437,22 +441,34 @@ exports.addToWatchlist = async (req, res, next) => {
         }
 
         // Check if product is already in watchlist
-        if (user.watchlist.includes(productId)) {
+        const isAlreadyInWatchlist = user.watchlist.some(
+            item => item?.productId?.toString() === productId
+        );
+
+        if (isAlreadyInWatchlist) {
             return next(new ErrorHandler("Product already in watchlist", 400));
         }
 
-        // Add to watchlist
-        user.watchlist.push(productId);
+        // Add to watchlist with full details
+        user.watchlist.push({
+            productId: product._id,
+            name: product.name,
+            price: product.price,
+            ratings: product.ratings
+        });
+
         await user.save();
 
         res.status(200).json({
             success: true,
-            message: "Product added to watchlist"
+            message: "Product added to watchlist",
+            watchlist: user.watchlist
         });
     } catch (err) {
         next(new ErrorHandler(`Server Error: ${err.message}`, 500));
     }
 };
+
 
 exports.removeFromWatchlist = async (req, res, next) => {
     try {
