@@ -16,15 +16,6 @@ const orderRoutes = require("./routes/orderRoutes");
 app.use(express.json()); // for parsing JSON
 app.use(express.urlencoded({ extended: true })); // for parsing form data
 app.use(cookieParser());
-app.use(helmet());
-app.use(cors({
-    origin: process.env.CORS_ORIGIN || '*',
-    credentials: false
-}));
-
-// Serve static files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
@@ -33,6 +24,13 @@ app.use(helmet({
         },
     },
 }));
+app.use(cors({
+    origin: process.env.CORS_ORIGIN || '*',
+    credentials: false
+}));
+
+// Serve static files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -42,11 +40,6 @@ app.use("/api/order", orderRoutes);
 
 // Error Middleware
 app.use(errorMiddleware);
-
-// Handle 404 errors
-app.all('*', (req, res, next) => {
-    next(new ErrorHandler(`Can't find ${req.originalUrl} on this server!`, 404));
-});
 
 // Global error handler
 app.use((err, req, res, next) => {

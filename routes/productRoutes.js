@@ -34,11 +34,19 @@ router.put('/:id/images',
     productController.updateProductImages
 );
 
-// Review routes
-router.post('/:id/review', authMiddleware, productController.createProductReview);
-router.get('/:id/reviews', productController.getProductReviews);
-router.delete('/:id/review', authMiddleware, productController.deleteReview);
+// Review Routes
+// Public route
+router.get('/reviews/:productId', productController.getProductReviews);
 
-router.put('/:id/review/:reviewId', authMiddleware, authorizeRoles('admin'), productController.updateReview);
-router.delete('/:id/review/:reviewId', authMiddleware, authorizeRoles('admin'), productController.deleteReviewById);
+// Authenticated user routes
+router.post('/reviews/:productId', authMiddleware, productController.createProductReview);
+router.delete('/reviews/:productId/user', authMiddleware, productController.deleteReview);
+
+// Admin review management routes
+router.route('/reviews/:productId/:reviewId')
+    .put(authMiddleware, authorizeRoles('admin'), productController.updateReview)
+    .delete(authMiddleware, authorizeRoles('admin'), productController.deleteReviewById);
+
 module.exports = router;
+
+
