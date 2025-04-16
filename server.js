@@ -1,14 +1,15 @@
-const dotenv = require("dotenv");                                                                                                                           
-const app = require("./app");                                                                                                                               
+const dotenv = require("dotenv");
+const app = require("./app");
+const ErrorHandler = require("./utils/errorHandler");
 dotenv.config();
 
 const connectDB = require("./database/connect");
 
 // Handling Uncaught Exception
 process.on("uncaughtException", (err) => {
-    console.log("UNCAUGHT EXCEPTION! 💥 Shutting down...");
+    console.log("UNCAUGHT EXCEPTION! 💥");
     console.log(err.name, err.message);
-    console.log("Stack:", err.stack);
+    console.log(err.stack);
     process.exit(1);
 });
 
@@ -22,11 +23,18 @@ const server = app.listen(process.env.PORT, () => {
 
 // Unhandled Promise Rejection
 process.on("unhandledRejection", (err) => {
-    console.log("UNHANDLED REJECTION! 💥 Shutting down...");
+    console.log("UNHANDLED REJECTION! 💥");
     console.log(err.name, err.message);
-    console.log("Stack:", err.stack);
-    
+    console.log(err.stack);
     server.close(() => {
         process.exit(1);
+    });
+});
+
+// Graceful shutdown on SIGTERM
+process.on('SIGTERM', () => {
+    console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
+    server.close(() => {
+        console.log('💥 Process terminated!');
     });
 });

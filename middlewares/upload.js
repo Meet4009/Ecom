@@ -21,8 +21,15 @@ const configureStorage = (destinationPath) => {
 
 // File Filter
 const fileFilter = (allowedTypes) => (req, file, cb) => {
-    const isAllowed = allowedTypes.includes(file.mimetype);
-    cb(isAllowed ? null : new Error(`Only ${allowedTypes.join(', ')} are allowed`), isAllowed);
+    if (!allowedTypes.includes(file.mimetype)) {
+        return cb(new ErrorHandler(`Only ${allowedTypes.join(', ')} are allowed`, 400), false);
+    }
+    
+    if (file.size > FILE_SIZE_LIMIT) {
+        return cb(new ErrorHandler(`File size should be less than ${FILE_SIZE_LIMIT / (1024 * 1024)}MB`, 400), false);
+    }
+    
+    cb(null, true);
 };
 
 // User Upload Configuration

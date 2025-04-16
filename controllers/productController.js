@@ -46,16 +46,12 @@ exports.adminDashboard = async (req, res, next) => {
 }
 
 // ---------- Create Product ---------- //
-exports.createProduct = async (req, res) => {
+exports.createProduct = async (req, res, next) => {
     try {
-        const { name, price, category, brand,download_url, stock, description, faqs } = req.body;
+        const { name, price, category, brand, download_url, stock, description, faqs } = req.body;
 
-        // Ensure files are uploaded
         if (!req.files?.length) {
-            return res.status(400).json({
-                success: false,
-                message: "Product images are required"
-            });
+            return next(new ErrorHandler("Product images are required", 400));
         }
 
         // Safely parse JSON strings
@@ -64,84 +60,69 @@ exports.createProduct = async (req, res) => {
             parsedDescription = typeof description === "string" ? JSON.parse(description) : description;
             parsedFaqs = typeof faqs === "string" ? JSON.parse(faqs) : faqs;
         } catch (parseError) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid JSON format in description or FAQs"
-            });
+            return next(new ErrorHandler("Invalid JSON format in description or FAQs", 400));
         }
 
-        // Validate input
         const validationPayload = {
             name, price, category, brand, stock,
             description: parsedDescription,
-            faqs: parsedFaqs,download_url,
+            faqs: parsedFaqs,
+            download_url,
             createdUser: req.user.id
         };
 
         const { error } = productValidationSchema.validate(validationPayload);
         if (error) {
-            return res.status(400).json({
-                success: false,
-                message: error.details[0].message
-            });
+            return next(new ErrorHandler(error.details[0].message, 400));
         }
 
-        const baseURL = process.env.BASE_URL
-        // Map uploaded images
+        const baseURL = process.env.BASE_URL;
         const productImages = req.files.map(file => ({
             url: `${baseURL}/uploads/products/${file.filename}`,
             public_id: file.filename
         }));
 
-        const newProduct = new Product({
+        const newProduct = await Product.create({
             ...validationPayload,
             productImages
         });
 
-        await newProduct.save();
         res.status(201).json({ success: true, product: newProduct });
 
     } catch (err) {
-        console.error("Error creating product:", err);
-        res.status(500).json({
-            success: false,
-            message: "Failed to create product",
-            error: err.message
-        });
+        return next(new ErrorHandler(err.message, 500));
     }
 };
 
 // ---------- Get All Products - Admin --------- //
-exports.getAllProducts = async (req, res) => {
+exports.getAllProducts = async (req, res, next) => {
     try {
         const products = await Product.find().populate("createdUser", "name email");
         const TotalProduct = await Product.countDocuments()
 
         res.status(200).json({ success: true, TotalProduct, products });
     } catch (err) {
-        console.error("Error fetching products:", err);
-        res.status(500).json({ success: false, message: "Server Error", error: err.message });
+        next(new ErrorHandler(`Failed to fetch products: ${err.message}`, 500));
     }
 };
 
 // ---------- Get Single Product --------- //
-exports.getSingleProduct = async (req, res) => {
+exports.getSingleProduct = async (req, res, next) => {
     try {
         const product = await Product.findById(req.params.id).populate("createdUser", "name email");
 
         if (!product) {
-            return res.status(404).json({ success: false, message: "Product not found" });
+            return next(new ErrorHandler("Product not found", 404));
         }
 
         res.status(200).json({ success: true, product });
     } catch (err) {
-        console.error("Error fetching product:", err);
-        res.status(500).json({ success: false, message: "Server Error", error: err.message });
+        next(new ErrorHandler(`Failed to fetch product: ${err.message}`, 500));
     }
 }
 
 // ---------- Update Product --------- //
-exports.updateProduct = async (req, res) => {
+exports.updateProduct = async (req, res, next) => {
     try {
         // Create update payload only with fields present in request body
         let updatePayload = {};
@@ -169,10 +150,7 @@ exports.updateProduct = async (req, res) => {
         });
 
         if (error) {
-            return res.status(400).json({
-                success: false,
-                message: error.details[0].message
-            });
+            return next(new ErrorHandler(error.details[0].message, 400));
         }
 
         const product = await Product.findByIdAndUpdate(
@@ -182,28 +160,23 @@ exports.updateProduct = async (req, res) => {
         );
 
         if (!product) {
-            return res.status(404).json({ success: false, message: "Product not found" });
+            return next(new ErrorHandler("Product not found", 404));
         }
 
         res.status(200).json({ success: true, product });
     }
     catch (err) {
-        console.error("Error updating product:", err);
-        res.status(500).json({
-            success: false,
-            message: err.message || "Server Error",
-            error: err.message
-        });
+        return next(new ErrorHandler(`Error updating product: ${err.message}`, 500));
     }
 }
 
 // ---------- Delete Product --------- //
-exports.deleteProduct = async (req, res) => {
+exports.deleteProduct = async (req, res, next) => {
     try {
         const product = await Product.findById(req.params.id);
 
         if (!product) {
-            return res.status(404).json({ success: false, message: "Product not found" });
+            return next(new ErrorHandler("Product not found", 404));
         }
 
         // Delete all associated images
@@ -213,16 +186,18 @@ exports.deleteProduct = async (req, res) => {
                 await fsPromises.unlink(imagePath);
             } catch (error) {
                 if (error.code !== 'ENOENT') {
-                    console.error("Error deleting image:", error);
+                    return next(new ErrorHandler(`Error deleting image: ${error.message}`, 500));
                 }
             }
         }
 
         await Product.findByIdAndDelete(req.params.id);
-        res.status(200).json({ success: true, message: "Product deleted successfully" });
+        res.status(200).json({ 
+            success: true, 
+            message: "Product deleted successfully" 
+        });
     } catch (err) {
-        console.error("Error deleting product:", err);
-        res.status(500).json({ success: false, message: "Server Error", error: err.message });
+        return next(new ErrorHandler(`Failed to delete product: ${err.message}`, 500));
     }
 }
 
@@ -301,24 +276,18 @@ exports.updateProductImages = async (req, res, next) => {
 };
 
 // ---------- Create/Update Product Review by user---------- //
-exports.createProductReview = async (req, res) => {
+exports.createProductReview = async (req, res, next) => {
     try {
         const { rating, comment } = req.body;
 
         if (!rating || rating < 1 || rating > 5) {
-            return res.status(400).json({
-                success: false,
-                message: "Please provide a rating between 1 and 5"
-            });
+            return next(new ErrorHandler("Please provide a rating between 1 and 5", 400));
         }
 
         const product = await Product.findById(req.params.id);
 
         if (!product) {
-            return res.status(404).json({
-                success: false,
-                message: "Product not found"
-            });
+            return next(new ErrorHandler("Product not found", 404));
         }
 
         // Check if user already reviewed
@@ -349,35 +318,24 @@ exports.createProductReview = async (req, res) => {
         });
 
     } catch (err) {
-        console.error("Error creating review:", err);
-        res.status(500).json({
-            success: false,
-            message: "Failed to create review",
-            error: err.message
-        });
+        return next(new ErrorHandler(`Failed to create review: ${err.message}`, 500));
     }
 };
 
 // ---------- Get Single Product Reviews ---------- //
-exports.getProductReviews = async (req, res) => {
+exports.getProductReviews = async (req, res, next) => {
     try {
         const product = await Product.findById(req.params.id);
 
         if (!product) {
-            return res.status(404).json({
-                success: false,
-                message: "Product not found"
-            });
+            return next(new ErrorHandler("Product not found", 404));
         }
 
         // Extract only the reviews array from the product
         const reviews = product.reviews;
 
         if (reviews.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "No reviews found for this product"
-            });
+            return next(new ErrorHandler("No reviews found for this product", 404));
         }
 
         res.status(200).json({
@@ -386,25 +344,17 @@ exports.getProductReviews = async (req, res) => {
         });
 
     } catch (err) {
-        console.error("Error fetching review:", err);
-        res.status(500).json({
-            success: false,
-            message: "Failed to fetch review",
-            error: err.message
-        });
+        return next(new ErrorHandler(`Failed to fetch reviews: ${err.message}`, 500));
     }
 };
 
 // ---------- Delete Review by user--------- //
-exports.deleteReview = async (req, res) => {
+exports.deleteReview = async (req, res, next) => {
     try {
         const product = await Product.findById(req.params.id);
 
         if (!product) {
-            return res.status(404).json({
-                success: false,
-                message: "Product not found"
-            });
+            return next(new ErrorHandler("Product not found", 404));
         }
 
         // Filter out the review
@@ -416,39 +366,28 @@ exports.deleteReview = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Review deleted successfully",
+            message: "Review deleted successfully"
         });
 
     } catch (err) {
-        console.error("Error deleting review:", err);
-        res.status(500).json({
-            success: false,
-            message: "Failed to delete review",
-            error: err.message
-        });
+        return next(new ErrorHandler(`Failed to delete review: ${err.message}`, 500));
     }
 };
 
 // ---------- Update Review usnig review ID by - admin--------- //
-exports.updateReview = async (req, res) => {
+exports.updateReview = async (req, res, next) => {
     try {
         const { rating, comment } = req.body;
         const { id: productId, reviewId } = req.params;
 
         if (!rating || rating < 1 || rating > 5) {
-            return res.status(400).json({
-                success: false,
-                message: "Please provide a rating between 1 and 5"
-            });
+            return next(new ErrorHandler("Please provide a rating between 1 and 5", 400));
         }
 
         const product = await Product.findById(productId);
 
         if (!product) {
-            return res.status(404).json({
-                success: false,
-                message: "Product not found"
-            });
+            return next(new ErrorHandler("Product not found", 404));
         }
 
         const reviewIndex = product.reviews.findIndex(
@@ -456,10 +395,7 @@ exports.updateReview = async (req, res) => {
         );
 
         if (reviewIndex === -1) {
-            return res.status(404).json({
-                success: false,
-                message: "Review not found or unauthorized"
-            });
+            return next(new ErrorHandler("Review not found or unauthorized", 404));
         }
 
         product.reviews[reviewIndex].rating = Number(rating);
@@ -474,26 +410,27 @@ exports.updateReview = async (req, res) => {
         });
 
     } catch (err) {
-        res.status(500).json({
-            success: false,
-            message: "Failed to update review",
-            error: err.message
-        });
+        return next(new ErrorHandler(`Failed to update review: ${err.message}`, 500));
     }
 };
 
 // ---------- Delete Review by reviewId - admin--------- //
-exports.deleteReviewById = async (req, res) => {
+exports.deleteReviewById = async (req, res, next) => {
     try {
         const { id: productId, reviewId } = req.params;
 
         const product = await Product.findById(productId);
 
         if (!product) {
-            return res.status(404).json({
-                success: false,
-                message: "Product not found"
-            });
+            return next(new ErrorHandler("Product not found", 404));
+        }
+
+        const reviewExists = product.reviews.some(
+            review => review._id.toString() === reviewId
+        );
+
+        if (!reviewExists) {
+            return next(new ErrorHandler("Review not found", 404));
         }
 
         // Filter out the review by reviewId
@@ -509,11 +446,7 @@ exports.deleteReviewById = async (req, res) => {
         });
 
     } catch (err) {
-        res.status(500).json({
-            success: false,
-            message: "Failed to delete review",
-            error: err.message
-        });
+        return next(new ErrorHandler(`Failed to delete review: ${err.message}`, 500));
     }
 };
 

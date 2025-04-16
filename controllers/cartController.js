@@ -4,40 +4,32 @@ const ErrorHandler = require('../utils/errorHandler');
 
 exports.addToCart = async (req, res, next) => {
     try {
-        const productId = req.params.id;  // Changed from destructuring
-        const quantity = req.body?.quantity || 1;
+        const productId = req.params.id;
+        const quantity = Number(req.body?.quantity) || 1;
 
-        if (!productId || quantity < 1) {
-            return res.status(400).json({
-                success: false,
-                message: "Please provide product ID and quantity should be at least 1"
-            });
+        if (!productId) {
+            return next(new ErrorHandler("Product ID is required", 400));
         }
 
-        // Check product exists and has enough stock
+        if (quantity < 1) {
+            return next(new ErrorHandler("Quantity must be at least 1", 400));
+        }
+
         const product = await Product.findById(productId);
         if (!product) {
-            return res.status(404).json({
-                success: false,
-                message: "Product not found"
-            });
+            return next(new ErrorHandler("Product not found", 404));
         }
 
         if (product.stock < quantity) {
-            return res.status(400).json({
-                success: false,
-                message: "Not enough stock available"
-            });
+            return next(new ErrorHandler(`Only ${product.stock} items available in stock`, 400));
         }
 
-        // Find or create cart for user
         let cart = await Cart.findOne({ user: req.user._id });
         if (!cart) {
             cart = new Cart({ user: req.user._id, items: [] });
         }
 
-        // Check if product already in cart
-        const existingItem = cart.items.find(item =>
+        const existingItem = cart.items.find(item => 
             item.product.toString() === productId
         );
 
@@ -52,12 +44,12 @@ exports.addToCart = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            message: "Item added to cart",
+            message: "Item added to cart successfully",
             cart
         });
 
     } catch (err) {
-        next(new ErrorHandler(err.message, 500));
+        next(new ErrorHandler(`Cart operation failed: ${err.message}`, 500));
     }
 };
 
@@ -79,7 +71,7 @@ exports.getCart = async (req, res, next) => {
         });
 
     } catch (err) {
-        next(new ErrorHandler(err.message, 500));
+        return next(new ErrorHandler(err.message, 500));
     }
 };
 
@@ -88,18 +80,12 @@ exports.updateCartItem = async (req, res, next) => {
         const { productId, quantity } = req.body;
 
         if (!productId || !quantity || quantity < 0) {
-            return res.status(400).json({
-                success: false,
-                message: "Please provide product ID and valid quantity"
-            });
+            return next(new ErrorHandler("Please provide product ID and valid quantity", 400));
         }
 
         const cart = await Cart.findOne({ user: req.user._id });
         if (!cart) {
-            return res.status(404).json({
-                success: false,
-                message: "Cart not found"
-            });
+            return next(new ErrorHandler("Cart not found", 404));
         }
 
         const itemIndex = cart.items.findIndex(item =>
@@ -107,10 +93,7 @@ exports.updateCartItem = async (req, res, next) => {
         );
 
         if (itemIndex === -1) {
-            return res.status(404).json({
-                success: false,
-                message: "Item not found in cart"
-            });
+            return next(new ErrorHandler("Item not found in cart", 404));
         }
 
         if (quantity === 0) {
@@ -118,10 +101,7 @@ exports.updateCartItem = async (req, res, next) => {
         } else {
             const product = await Product.findById(productId);
             if (product.stock < quantity) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Not enough stock available"
-                });
+                return next(new ErrorHandler("Not enough stock available", 400));
             }
             cart.items[itemIndex].quantity = quantity;
         }
@@ -136,7 +116,7 @@ exports.updateCartItem = async (req, res, next) => {
         });
 
     } catch (err) {
-        next(new ErrorHandler(err.message, 500));
+        return next(new ErrorHandler(err.message, 500));
     }
 };
 
@@ -146,10 +126,7 @@ exports.removeFromCart = async (req, res, next) => {
 
         const cart = await Cart.findOne({ user: req.user._id });
         if (!cart) {
-            return res.status(404).json({
-                success: false,
-                message: "Cart not found"
-            });
+            return next(new ErrorHandler("Cart not found", 404));
         }
 
         cart.items = cart.items.filter(item =>
@@ -166,7 +143,7 @@ exports.removeFromCart = async (req, res, next) => {
         });
 
     } catch (err) {
-        next(new ErrorHandler(err.message, 500));
+        return next(new ErrorHandler(err.message, 500));
     }
 };
 
@@ -174,10 +151,7 @@ exports.clearCart = async (req, res, next) => {
     try {
         const cart = await Cart.findOne({ user: req.user._id });
         if (!cart) {
-            return res.status(404).json({
-                success: false,
-                message: "Cart not found"
-            });
+            return next(new ErrorHandler("Cart not found", 404));
         }
 
         cart.items = [];
@@ -190,6 +164,6 @@ exports.clearCart = async (req, res, next) => {
         });
 
     } catch (err) {
-        next(new ErrorHandler(err.message, 500));
+        return next(new ErrorHandler(err.message, 500));
     }
 };

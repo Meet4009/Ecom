@@ -1,33 +1,43 @@
 const ErrorHandler = require("../utils/errorHandler");
 
 module.exports = (err, req, res, next) => {
-    // Set default error values
     err.statusCode = err.statusCode || 500;
     err.message = err.message || "Internal Server Error";
 
-    // Handle specific MongoDB and JWT errors
-    const errorTypes = {
-        CastError: { message: `Resource not found. Invalid: ${err.path}`, code: 400 },
-        JsonWebTokenError: { message: "Invalid JSON Web Token, please try again", code: 401 },
-        TokenExpiredError: { message: "JSON Web Token has expired, please login again", code: 401 },
-        ValidationError: { message: err.message, code: 400 },
-        MongoServerError: { message: err.code === 11000 ? 
-            `Duplicate ${Object.keys(err.keyValue)} entered` : 
-            "Database error occurred", 
-            code: 400 
-        }
-    };
-
-    // Apply specific error handling if error type is recognized
-    if (errorTypes[err.name]) {
-        const { message, code } = errorTypes[err.name];
-        err = new ErrorHandler(message, code);
+    // MongoDB Invalid ObjectID Error
+    if (err.name === 'CastError') {
+        const message = `Resource not found. Invalid ${err.path}: ${err.value}`;
+        err = new ErrorHandler(message, 400);
     }
 
-    // Send error response
-    return res.status(err.statusCode).json({
+    // Mongoose duplicate key error
+    if (err.code === 11000) {
+        const field = Object.keys(err.keyValue)[0];
+        const message = `Duplicate ${field} entered. Please choose another value.`;
+        err = new ErrorHandler(message, 400);
+    }
+
+    // Wrong JWT error
+    if (err.name === 'JsonWebTokenError') {
+        err = new ErrorHandler('Invalid token. Please log in again.', 401);
+    }
+
+    // JWT Token expired error
+    if (err.name === 'TokenExpiredError') {
+        err = new ErrorHandler('Token expired. Please log in again.', 401);
+    }
+
+    // Multer file size error
+    if (err.code === 'LIMIT_FILE_SIZE') {
+        err = new ErrorHandler('File size is too large. Maximum size is 5MB.', 400);
+    }
+
+    res.status(err.statusCode).json({
         success: false,
-        message: err.message,
-        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        error: {
+            message: err.message,
+            code: err.statusCode,
+            ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+        }
     });
 };

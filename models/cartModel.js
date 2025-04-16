@@ -21,7 +21,7 @@ const cartSchema = new mongoose.Schema({
         unique: true
     },
     items: [cartItemSchema],
-    totalQuantity:{
+    totalQuantity: {
         type: Number,
         default: 0
     },
@@ -30,22 +30,47 @@ const cartSchema = new mongoose.Schema({
         default: 0
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
 
-// Pre-save middleware to calculate totalPrice
+// Add method to calculate totals
+cartSchema.methods.calculateTotals = function() {
+    this.totalQuantity = this.items.reduce((sum, item) => sum + item.quantity, 0);
+    this.total = this.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+};
+
+// Combined pre-save middleware with error handling
 cartSchema.pre('save', async function(next) {
-    const populated = await this.populate('items.product', 'price');
-    this.total = populated.items.reduce((sum, item) => {
-        return sum + (item.product.price * item.quantity);
-    }, 0);
+    try {
+        if (this.isModified('items')) {
+            await this.populate('items.product', 'price');
+            
+            // Validate all products exist
+            const invalidItems = this.items.filter(item => !item.product);
+            if (invalidItems.length > 0) {
+                throw new Error('One or more products not found');
+            }
+
+            this.calculateTotals();
+        }
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+
+// Add validation middleware
+cartSchema.pre('validate', function(next) {
+    if (this.items.length > 20) {
+        next(new Error('Cart cannot have more than 20 items'));
+        return;
+    }
     next();
 });
-// Pre-save middleware to calculate totalQuantity
-cartSchema.pre('save', function(next) {
-    this.totalQuantity = this.items.reduce((sum, item) => {
-        return sum + item.quantity;
-    }, 0);
-    next();
-});
+
+// Add index for better performance
+cartSchema.index({ user: 1, 'items.product': 1 });
+
 module.exports = mongoose.model('Cart', cartSchema);

@@ -33,5 +33,8 @@ router.get('/admin/users', authMiddleware, authorizeRoles("admin"), userControll
 router.get('/admin/user/:id', authMiddleware, authorizeRoles("admin"), userController.getUserDetails);
 // router.put('/admin/user/:id', authMiddleware, authorizeRoles("admin"), userController.updateUser);
 router.delete('/admin/user/:id', authMiddleware, authorizeRoles("admin"), userController.deleteUser);
+router.get('/admin/user/:id/watchlist', authMiddleware, authorizeRoles("admin"), userController.userWatchlist);
+// router.delete('/admin/user/:id/cart', authMiddleware, authorizeRoles("admin"), userController.userCart);
+// router.delete('/admin/user/:id/order', authMiddleware, authorizeRoles("admin"), userController.userOrder);
 
 module.exports = router;

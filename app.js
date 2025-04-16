@@ -34,4 +34,23 @@ app.use("/api/order", orderRoutes);
 // Error Middleware
 app.use(errorMiddleware);
 
+// Handle 404 errors
+app.all('*', (req, res, next) => {
+    next(new ErrorHandler(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+    err.statusCode = err.statusCode || 500;
+    err.message = err.message || "Internal Server Error";
+
+    res.status(err.statusCode).json({
+        success: false,
+        error: {
+            message: err.message,
+            ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+        }
+    });
+});
+
 module.exports = app;
