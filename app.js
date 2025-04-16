@@ -16,14 +16,7 @@ const orderRoutes = require("./routes/orderRoutes");
 app.use(express.json()); // for parsing JSON
 app.use(express.urlencoded({ extended: true })); // for parsing form data
 app.use(cookieParser());
-app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            imgSrc: ["'self'", "http://localhost:3000", process.env.FRONT_END_URL], // Adjust for prod
-        },
-    },
-}));
+
 app.use(cors({
     origin: process.env.CORS_ORIGIN || '*',
     credentials: false
@@ -40,6 +33,14 @@ app.use("/api/order", orderRoutes);
 
 // Error Middleware
 app.use(errorMiddleware);
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            imgSrc: ["'self'", "http://localhost:3000", process.env.FRONT_END_URL], // Adjust for prod
+        },
+    },
+}));
 
 // Global error handler
 app.use((err, req, res, next) => {
