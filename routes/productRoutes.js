@@ -39,4 +39,6 @@ router.post('/:id/review', authMiddleware, productController.createProductReview
 router.get('/:id/reviews', productController.getProductReviews);
 router.delete('/:id/review', authMiddleware, productController.deleteReview);
 
+router.put('/:id/review/:reviewId', authMiddleware, authorizeRoles('admin'), productController.updateReview);
+router.delete('/:id/review/:reviewId', authMiddleware, authorizeRoles('admin'), productController.deleteReviewById);
 module.exports = router;
