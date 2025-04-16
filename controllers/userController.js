@@ -171,9 +171,8 @@ exports.updateProfileImage = async (req, res, next) => {
             return next(new ErrorHandler("Please upload only JPG, JPEG or PNG images", 400));
         }
 
-        // Find user and update in one operation
+        // Find user
         const user = await User.findById(req.user.id);
-
         if (!user) {
             await fsPromises.unlink(req.file.path);
             return next(new ErrorHandler("User not found", 404));
@@ -181,8 +180,10 @@ exports.updateProfileImage = async (req, res, next) => {
 
         // Delete old image if exists
         if (user.profileImage) {
+            const oldImagePath = path.join(__dirname, '..', 'uploads', 'users', path.basename(user.profileImage));
+            
             try {
-                await fsPromises.unlink(user.profileImage);
+                await fsPromises.unlink(oldImagePath);
             } catch (error) {
                 // Only log error if file exists but couldn't be deleted
                 if (error.code !== 'ENOENT') {
@@ -191,8 +192,9 @@ exports.updateProfileImage = async (req, res, next) => {
             }
         }
 
-        // Normalize the path with forward slashes
-        user.profileImage = req.file.path.split(path.sep).join('/');
+        // Construct the URL path for the profile image
+        const baseURL = process.env.BASE_URL;
+        user.profileImage = `${baseURL}/uploads/users/${req.file.filename}`;
         await user.save();
 
         res.status(200).json({
@@ -356,7 +358,7 @@ exports.addToWatchlist = async (req, res, next) => {
 
         watchlist.products.push(productId);
         await watchlist.save();
-        await watchlist.populate('products', 'name price ratings productImages ratings');
+        await watchlist.populate('products', 'name price productImages ratings');
 
         res.status(200).json({
             success: true,
@@ -371,7 +373,7 @@ exports.addToWatchlist = async (req, res, next) => {
 exports.getWatchlist = async (req, res, next) => {
     try {
         let watchlist = await Watchlist.findOne({ user: req.user._id })
-            .populate('products', 'name price productImages');
+            .populate('products', 'name price productImages ratings');
 
         if (!watchlist) {
             watchlist = { products: [] };
@@ -389,7 +391,7 @@ exports.getWatchlist = async (req, res, next) => {
 exports.removeFromWatchlist = async (req, res, next) => {
     try {
         const productId = req.params.productId;
-        
+
         const watchlist = await Watchlist.findOne({ user: req.user._id });
         if (!watchlist) {
             return next(new ErrorHandler("Watchlist not found", 404));
@@ -400,7 +402,7 @@ exports.removeFromWatchlist = async (req, res, next) => {
         );
 
         await watchlist.save();
-        await watchlist.populate('products', 'name price ratings productImages ');
+        await watchlist.populate('products', 'name price productImages ratings');
 
         res.status(200).json({
             success: true,
@@ -427,11 +429,11 @@ exports.getAllUsers = async (req, res, next) => {
 
         const totalCount = await User.countDocuments({ role: "user" });
 
-        res.status(200).json({ 
-            success: true, 
-            message: "Get All User Successfully", 
+        res.status(200).json({
+            success: true,
+            message: "Get All User Successfully",
             count: totalCount,
-            data: users 
+            data: users
         });
 
     } catch (err) {
@@ -453,7 +455,7 @@ exports.getUserDetails = async (req, res, next) => {
     }
 }
 
- // ----------  Update User ---------- //
+// ----------  Update User ---------- //
 exports.updateUser = async (req, res, next) => {
     try {
         const { name, email, phone, role } = req.body;
