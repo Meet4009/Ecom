@@ -25,6 +25,15 @@ app.use(cors({
 // Serve static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            imgSrc: ["'self'", "http://localhost:3000", process.env.FRONT_END_URL], // Adjust for prod
+        },
+    },
+}));
+
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/product", productRoutes);
