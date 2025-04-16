@@ -31,6 +31,9 @@ const productSchema = new mongoose.Schema({
     },
     category: { type: String, required: true, index: true },
     brand: { type: String, required: true, index: true },
+    download_url:{
+        type: String, required: true, 
+    },
     stock: { 
         type: Number, 
         required: true,

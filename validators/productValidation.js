@@ -12,6 +12,7 @@ const baseProductSchema = {
   category: Joi.string(),
   brand: Joi.string(),
   stock: Joi.number().integer(),
+  download_url: Joi.string().required(),
   createdUser: Joi.string(),
   description: Joi.array().items(Joi.object(pointsSchema)),
   faqs: Joi.array().items(
@@ -23,7 +24,7 @@ const baseProductSchema = {
 };
 
 // Create schema makes all fields required
-const productValidationSchema = Joi.object({ 
+const productValidationSchema = Joi.object({
   ...baseProductSchema
 }).required().options({ presence: 'required' });
 

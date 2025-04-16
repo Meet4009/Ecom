@@ -11,7 +11,9 @@ exports.createOrder = async (req, res, next) => {
         const { error } = orderValidationSchema.validate(req.body);
         if (error) return next(new ErrorHandler(error.details[0].message, 400));
 
-        const { items, shippingAddress, paymentInfo } = req.body;
+        let { items } = req.body
+        const { shippingAddress, paymentInfo } = req.body;
+       
 
         // Calculate total and verify stock
         let totalAmount = 0;
@@ -127,7 +129,7 @@ exports.updateOrderStatus = async (req, res, next) => {
         }
 
         order.status = req.body.status;
-        
+
         if (req.body.status === 'downloaded') {
             order.deliveredAt = Date.now();
         }

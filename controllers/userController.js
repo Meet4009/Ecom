@@ -488,7 +488,6 @@ exports.deleteUser = async (req, res, next) => {
         // Delete profile image if exists
         if (user.profileImage) {
             const imagePath = path.join(__dirname, '..', user.profileImage);
-            console.log(imagePath);
 
             try {
                 await fsPromises.unlink(imagePath);

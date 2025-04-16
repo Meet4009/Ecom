@@ -48,7 +48,7 @@ exports.adminDashboard = async (req, res, next) => {
 // ---------- Create Product ---------- //
 exports.createProduct = async (req, res) => {
     try {
-        const { name, price, category, brand, stock, description, faqs } = req.body;
+        const { name, price, category, brand,download_url, stock, description, faqs } = req.body;
 
         // Ensure files are uploaded
         if (!req.files?.length) {
@@ -74,7 +74,7 @@ exports.createProduct = async (req, res) => {
         const validationPayload = {
             name, price, category, brand, stock,
             description: parsedDescription,
-            faqs: parsedFaqs,
+            faqs: parsedFaqs,download_url,
             createdUser: req.user.id
         };
 
@@ -236,7 +236,7 @@ exports.updateProductImages = async (req, res, next) => {
 
         // Validate each file
         const maxSize = 5 * 1024 * 1024; // 5MB
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
 
         for (const file of req.files) {
             if (file.size > maxSize) {
@@ -260,8 +260,10 @@ exports.updateProductImages = async (req, res, next) => {
 
         // Delete all existing images
         for (const oldImage of product.productImages) {
+
             try {
-                const imagePath = path.join(__dirname, '..', oldImage.url);
+                const imagePath = path.join(__dirname, '..', 'uploads', 'products', path.basename(oldImage.url));
+
                 await fsPromises.unlink(imagePath);
             } catch (error) {
                 if (error.code !== 'ENOENT') {
@@ -459,7 +461,6 @@ exports.updateReview = async (req, res) => {
                 message: "Review not found or unauthorized"
             });
         }
-        console.log(reviewIndex);
 
         product.reviews[reviewIndex].rating = Number(rating);
         product.reviews[reviewIndex].comment = comment;
