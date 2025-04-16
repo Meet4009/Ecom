@@ -17,6 +17,9 @@ exports.createOrder = async (req, res, next) => {
         let totalAmount = 0;
         const orderItems = [];
 
+        // set item.quantity
+        items = items.map(item => ({ ...item, quantity: item.quantity || 1 }));
+
         for (const item of items) {
             const product = await Product.findById(item.product);
             if (!product) {
