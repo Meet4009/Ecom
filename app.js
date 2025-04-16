@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const cookieParser = require("cookie-parser");
 const helmet = require('helmet');
-// const cors = require('cors');
+const cors = require('cors');
 const path = require('path');
 
 // Route Imports
@@ -17,10 +17,10 @@ app.use(express.json()); // for parsing JSON
 app.use(express.urlencoded({ extended: true })); // for parsing form data
 app.use(cookieParser());
 app.use(helmet());
-// app.use(cors({
-//     origin: process.env.CORS_ORIGIN || '*',
-//     credentials: true
-// }));
+app.use(cors({
+    origin: process.env.CORS_ORIGIN || '*',
+    credentials: false
+}));
 
 // Serve static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
