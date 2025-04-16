@@ -181,7 +181,7 @@ exports.updateProfileImage = async (req, res, next) => {
         // Delete old image if exists
         if (user.profileImage) {
             const oldImagePath = path.join(__dirname, '..', 'uploads', 'users', path.basename(user.profileImage));
-
+            
             try {
                 await fsPromises.unlink(oldImagePath);
             } catch (error) {
