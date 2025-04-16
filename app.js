@@ -20,7 +20,7 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            imgSrc: ["'self'", "http://localhost:5173", process.env.FRONT_END_URL], // Adjust for prod
+            imgSrc: ["'self'", "http://localhost:3000", process.env.FRONT_END_URL], // Adjust for prod
         },
     },
 }));
