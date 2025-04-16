@@ -11,7 +11,6 @@ const productRoutes = require("./routes/productRoutes");
 const errorMiddleware = require("./middlewares/error");
 const cartRoutes = require("./routes/cartRoutes");
 const orderRoutes = require("./routes/orderRoutes");
-const ErrorHandler = require("./utils/errorHandler")
 
 // Middleware.
 app.use(express.json()); // for parsing JSON
@@ -33,21 +32,11 @@ app.use(cors({
 // Serve static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-
-app.use(errorMiddleware);
-
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/product", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/order", orderRoutes);
-
-// Error Middleware
-
-// Handle 404 errors
-// app.all('*', (req, res, next) => {
-//     next(new ErrorHandler(`Can't find ${req.originalUrl} on this server!`, 404));
-// });
 
 // Global error handler
 app.use((err, req, res, next) => {
@@ -62,5 +51,6 @@ app.use((err, req, res, next) => {
         }
     });
 });
+app.use(errorMiddleware);
 
 module.exports = app;
