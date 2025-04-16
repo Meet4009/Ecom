@@ -1,6 +1,8 @@
 const User = require('../models/userModel');
 const Product = require('../models/productModel');
 const Watchlist = require('../models/watchlistModel');
+const Cart = require('../models/cartModel.js');
+const Order = require('../models/orderModel.js');
 const ErrorHandler = require("../utils/errorHandler");
 const sendEmail = require("../utils/sendEmail.js");
 const crypto = require("crypto");
@@ -181,7 +183,7 @@ exports.updateProfileImage = async (req, res, next) => {
         // Delete old image if exists
         if (user.profileImage) {
             const oldImagePath = path.join(__dirname, '..', 'uploads', 'users', path.basename(user.profileImage));
-            
+
             try {
                 await fsPromises.unlink(oldImagePath);
             } catch (error) {
@@ -506,3 +508,57 @@ exports.deleteUser = async (req, res, next) => {
         next(new ErrorHandler(`Server Error: ${err.message}`, 500));
     }
 }
+
+exports.userWatchlist = async (req, res, next) => {
+    try {
+        let watchlist = await Watchlist.findOne({ user: req.params.id })
+            .populate('products', 'name price productImages ratings');
+
+        if (!watchlist) {
+            watchlist = { products: [] };
+        }
+
+        res.status(200).json({
+            success: true,
+            data: watchlist
+        });
+    } catch (err) {
+        next(new ErrorHandler(`Server Error: ${err.message}`, 500));
+    }
+};
+
+
+exports.userCart = async (req, res, next) => {
+    try {
+        const cart = await Cart.findOne({ user: req.params.id })
+            .populate('items.product', 'name price productImages');
+
+        if (!cart) {
+            return res.status(200).json({
+                success: true,
+                cart: { items: [], total: 0 }
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            cart
+        });
+
+    } catch (err) {
+        return next(new ErrorHandler(err.message, 500));
+    }
+};
+
+exports.userOrder = async (req, res, next) => {
+    try {
+        const orders = await Order.find({ user: req.params.id });
+
+        res.status(200).json({
+            success: true,
+            orders
+        });
+    } catch (err) {
+        next(new ErrorHandler(err.message, 500));
+    }
+};
