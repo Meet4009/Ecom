@@ -48,9 +48,9 @@ app.use("/api/order", orderRoutes);
 // Error Middleware
 
 // Handle 404 errors
-app.all(/(.*)/, (req, res, next) => {
-    next(new ErrorHandler(`Can't find ${req.originalUrl} on this server!`, 404));
-});
+// app.all(/(.*)/, (req, res, next) => {
+//     next(new ErrorHandler(`Can't find ${req.originalUrl} on this server!`, 404));
+// });
 
 // Global error handler
 app.use((err, req, res, next) => {

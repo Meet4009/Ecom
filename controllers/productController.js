@@ -284,7 +284,7 @@ exports.createProductReview = async (req, res, next) => {
             return next(new ErrorHandler("Please provide a rating between 1 and 5", 400));
         }
 
-        const product = await Product.findById(req.params.id);
+        const product = await Product.findById(req.params.productId);
 
         if (!product) {
             return next(new ErrorHandler("Product not found", 404));
