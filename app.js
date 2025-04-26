@@ -4,7 +4,7 @@ const cookieParser = require("cookie-parser");
 const helmet = require('helmet');
 const path = require('path');
 const cors = require('cors');
- 
+const ErrorHandler = require('./utils/errorHandler');
 
 // Serve static files (uploads folder) with CORS
 
