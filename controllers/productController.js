@@ -324,8 +324,8 @@ exports.createProductReview = async (req, res, next) => {
 
 // ---------- Get Single Product Reviews ---------- //
 exports.getProductReviews = async (req, res, next) => {
-    try {
-        const product = await Product.findById(req.params.id);
+    try {        
+        const product = await Product.findById(req.params.productId);
 
         if (!product) {
             return next(new ErrorHandler("Product not found", 404));
@@ -351,7 +351,7 @@ exports.getProductReviews = async (req, res, next) => {
 // ---------- Delete Review by user--------- //
 exports.deleteReview = async (req, res, next) => {
     try {
-        const product = await Product.findById(req.params.id);
+        const product = await Product.findById(req.params.productId);
 
         if (!product) {
             return next(new ErrorHandler("Product not found", 404));
