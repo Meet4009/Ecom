@@ -2,8 +2,12 @@ const express = require("express");
 const app = express();
 const cookieParser = require("cookie-parser");
 const helmet = require('helmet');
-const cors = require('cors');
 const path = require('path');
+const cors = require('cors');
+ 
+
+// Serve static files (uploads folder) with CORS
+
 
 // Route Imports
 const authRoutes = require("./routes/authRoutes");
@@ -24,14 +28,17 @@ app.use(helmet({
         },
     },
 }));
+// Allow CORS for all routes
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || '*',
-    credentials: false
-}));
+    origin: '*', // or specify your frontend domain like 'https://your-frontend-site.com'
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
+   
 
 // Serve static files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static('uploads'));
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/product", productRoutes);
