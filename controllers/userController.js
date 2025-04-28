@@ -488,7 +488,7 @@ exports.getUserDetails = async (req, res, next) => {
         user.cartQuantity = cart?.totalQuantity || 0;
 
         const userDetails = {
-            success: truem,
+            success: true,
             user
         };
 
