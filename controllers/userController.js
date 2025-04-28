@@ -135,12 +135,14 @@ exports.getProfile = async (req, res, next) => {
             return next(new ErrorHandler("User not found", 404));
         }
 
+        // Add watchlist and cart quantities directly to user object
+        user.watchlistQuantity = watchlist?.products?.length || 0;
+        user.cartQuantity = cart?.totalQuantity || 0;
+
         const profile = {
             success: true,
             data: {
-                user,
-                watchlistQuantity: watchlist?.products?.length || 0,
-                cartQuantity: cart?.totalQuantity || 0
+                user
             }
         };
 
@@ -483,12 +485,14 @@ exports.getUserDetails = async (req, res, next) => {
             return next(new ErrorHandler("User not found", 404));
         }
 
+        // Add watchlist and cart quantities directly to user object
+        user.watchlistQuantity = watchlist?.products?.length || 0;
+        user.cartQuantity = cart?.totalQuantity || 0;
+
         const userDetails = {
             success: true,
             data: {
-                user,
-                watchlistQuantity: watchlist?.products?.length || 0,
-                cartQuantity: cart?.totalQuantity || 0
+                user
             }
         };
 
