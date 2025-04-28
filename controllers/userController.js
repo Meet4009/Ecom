@@ -137,17 +137,19 @@ exports.getProfile = async (req, res, next) => {
 
         const profile = {
             success: true,
-            data: user,
-            watchlistQuantity: watchlist?.products?.length || 0,
-            cartQuantity: cart?.totalQuantity || 0
+            data: {
+                user,
+                watchlistQuantity: watchlist?.products?.length || 0,
+                cartQuantity: cart?.totalQuantity || 0
+            }
         };
 
         res.status(200).json(profile);
 
     } catch (err) {
         next(new ErrorHandler(
-            err.name === 'CastError' 
-                ? "Invalid user ID format" 
+            err.name === 'CastError'
+                ? "Invalid user ID format"
                 : `Server Error: ${err.message}`,
             err.name === 'CastError' ? 400 : 500
         ));
@@ -483,17 +485,19 @@ exports.getUserDetails = async (req, res, next) => {
 
         const userDetails = {
             success: true,
-            data: user,
-            watchlistQuantity: watchlist?.products?.length || 0,
-            cartQuantity: cart?.totalQuantity || 0
+            data: {
+                user,
+                watchlistQuantity: watchlist?.products?.length || 0,
+                cartQuantity: cart?.totalQuantity || 0
+            }
         };
 
         res.status(200).json(userDetails);
 
     } catch (err) {
         next(new ErrorHandler(
-            err.name === 'CastError' 
-                ? "Invalid user ID format" 
+            err.name === 'CastError'
+                ? "Invalid user ID format"
                 : `Server Error: ${err.message}`,
             err.name === 'CastError' ? 400 : 500
         ));
