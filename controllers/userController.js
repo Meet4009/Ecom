@@ -121,29 +121,36 @@ exports.logout = async (req, res, next) => {
 // ----------  Profile ---------- //
 exports.getProfile = async (req, res, next) => {
     try {
-
-        const user = await User.findById(req.user.id)
-
-        if (!user) return next(new ErrorHandler("User not found", 404));
-
-        // count the number of items in the user's watchlist
-        const watchlist = await Watchlist.findOne({ user: user.id });
-
-        let watchlistQuantity = 0; // Default to 0 if watchlist is not found
-        if (watchlist) {
-            watchlistQuantity = watchlist.products.length;
+        if (!req.user?.id) {
+            return next(new ErrorHandler("User ID is required", 400));
         }
 
-        // count the number of items in the user's cart
-        const cart = await Cart.findOne({ user: req.user.id });
-        let cartQuantity = 0; // Default to 0 if cart is not found
-        if (cart) {
-            cartQuantity = cart.totalQuantity;
+        const [user, watchlist, cart] = await Promise.all([
+            User.findById(req.user.id).lean(),
+            Watchlist.findOne({ user: req.user.id }).lean(),
+            Cart.findOne({ user: req.user.id }).lean()
+        ]);
+
+        if (!user) {
+            return next(new ErrorHandler("User not found", 404));
         }
-        res.status(200).json({ success: true, data: user, watchlistQuantity, cartQuantity });
+
+        const profile = {
+            success: true,
+            data: user,
+            watchlistQuantity: watchlist?.products?.length || 0,
+            cartQuantity: cart?.totalQuantity || 0
+        };
+
+        res.status(200).json(profile);
 
     } catch (err) {
-        next(new ErrorHandler(`Server Error: ${err.message}`, 500));
+        next(new ErrorHandler(
+            err.name === 'CastError' 
+                ? "Invalid user ID format" 
+                : `Server Error: ${err.message}`,
+            err.name === 'CastError' ? 400 : 500
+        ));
     }
 };
 
@@ -460,31 +467,38 @@ exports.getAllUsers = async (req, res, next) => {
 // ----------  Get User Details ---------- //
 exports.getUserDetails = async (req, res, next) => {
     try {
-        const user = await User.findById(req.params.id);
-
-        if (!user) return next(new ErrorHandler("User not found", 404));
-
-        // count the number of items in the user's watchlist
-        const watchlist = await Watchlist.findOne({ user: user.id });
-
-        let watchlistQuantity = 0; // Default to 0 if watchlist is not found
-        if (watchlist) {
-            watchlistQuantity = watchlist.products.length;
+        if (!req.params?.id) {
+            return next(new ErrorHandler("User ID is required", 400));
         }
 
+        const [user, watchlist, cart] = await Promise.all([
+            User.findById(req.params.id).lean(),
+            Watchlist.findOne({ user: req.params.id }).lean(),
+            Cart.findOne({ user: req.params.id }).lean()
+        ]);
 
-        // count the number of items in the user's cart
-        const cart = await Cart.findOne({ user: req.params.id });
-        let cartQuantity = 0; // Default to 0 if cart is not found
-        if (cart) {
-            cartQuantity = cart.totalQuantity;
+        if (!user) {
+            return next(new ErrorHandler("User not found", 404));
         }
-        res.status(200).json({ success: true, data: user, watchlistQuantity, cartQuantity });
+
+        const userDetails = {
+            success: true,
+            data: user,
+            watchlistQuantity: watchlist?.products?.length || 0,
+            cartQuantity: cart?.totalQuantity || 0
+        };
+
+        res.status(200).json(userDetails);
 
     } catch (err) {
-        next(new ErrorHandler(`Server Error: ${err.message}`, 500));
+        next(new ErrorHandler(
+            err.name === 'CastError' 
+                ? "Invalid user ID format" 
+                : `Server Error: ${err.message}`,
+            err.name === 'CastError' ? 400 : 500
+        ));
     }
-}
+};
 
 // ----------  Update User ---------- //
 exports.updateUser = async (req, res, next) => {
