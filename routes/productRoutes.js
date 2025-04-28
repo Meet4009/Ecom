@@ -46,6 +46,7 @@ router.delete('/reviews/:productId/user', authMiddleware, productController.dele
 router.route('/:productId/review/:reviewId')
     .put(authMiddleware, authorizeRoles('admin'), productController.updateReview)
     .delete(authMiddleware, authorizeRoles('admin'), productController.deleteReviewById);
+    
 
 module.exports = router;
 

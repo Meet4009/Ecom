@@ -125,8 +125,10 @@ exports.getProfile = async (req, res, next) => {
         const user = await User.findById(req.user.id)
 
         if (!user) return next(new ErrorHandler("User not found", 404));
+        const watchlistItem = await Watchlist.countDocuments({ user: req.user.id });
+        const cartItem = await Cart.countDocuments({ user: req.user.id });
 
-        res.status(200).json({ success: true, data: user });
+        res.status(200).json({ success: true, data: user, watchlistItem, cartItem });
 
     } catch (err) {
         next(new ErrorHandler(`Server Error: ${err.message}`, 500));
@@ -449,8 +451,10 @@ exports.getUserDetails = async (req, res, next) => {
         const user = await User.findById(req.params.id);
 
         if (!user) return next(new ErrorHandler("User not found", 404));
+        const watchlistItem = await Watchlist.countDocuments({ user: req.params.id });
+        const cartItem = await Cart.countDocuments({ user: req.params.id });
 
-        res.status(200).json({ success: true, data: user });
+        res.status(200).json({ success: true, data: user, watchlistItem, cartItem });
 
     } catch (err) {
         next(new ErrorHandler(`Server Error: ${err.message}`, 500));
