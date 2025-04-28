@@ -141,9 +141,7 @@ exports.getProfile = async (req, res, next) => {
 
         const profile = {
             success: true,
-            data: {
-                user
-            }
+            user
         };
 
         res.status(200).json(profile);
@@ -490,10 +488,8 @@ exports.getUserDetails = async (req, res, next) => {
         user.cartQuantity = cart?.totalQuantity || 0;
 
         const userDetails = {
-            success: true,
-            data: {
-                user
-            }
+            success: truem,
+            user
         };
 
         res.status(200).json(userDetails);
