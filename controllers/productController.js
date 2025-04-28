@@ -378,7 +378,7 @@ exports.deleteReview = async (req, res, next) => {
 exports.updateReview = async (req, res, next) => {
     try {
         const { rating, comment } = req.body;
-        const { id: productId, reviewId } = req.params;
+        const {  productId, reviewId } = req.params;
 
         if (!rating || rating < 1 || rating > 5) {
             return next(new ErrorHandler("Please provide a rating between 1 and 5", 400));

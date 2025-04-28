@@ -27,10 +27,10 @@ router.put('/:id', authMiddleware, authorizeRoles('admin'), productController.up
 router.delete('/:id', authMiddleware, authorizeRoles('admin'), productController.deleteProduct);
 
 // update product images (Admin only)
-router.put('/:id/images', 
-    authMiddleware, 
-    authorizeRoles('admin'), 
-    multipleProductUpload, 
+router.put('/:id/images',
+    authMiddleware,
+    authorizeRoles('admin'),
+    multipleProductUpload,
     productController.updateProductImages
 );
 
@@ -43,7 +43,7 @@ router.post('/reviews/:productId', authMiddleware, productController.createProdu
 router.delete('/reviews/:productId/user', authMiddleware, productController.deleteReview);
 
 // Admin review management routes
-router.route('/reviews/:productId/:reviewId')
+router.route('/:productId/review/:reviewId')
     .put(authMiddleware, authorizeRoles('admin'), productController.updateReview)
     .delete(authMiddleware, authorizeRoles('admin'), productController.deleteReviewById);
 
