@@ -132,8 +132,6 @@ exports.getProfile = async (req, res, next) => {
         let watchlistQuantity = 0; // Default to 0 if watchlist is not found
         if (watchlist) {
             watchlistQuantity = watchlist.products.length;
-        } else {
-            return next(new ErrorHandler("No watchlist found", 404));
         }
 
         // count the number of items in the user's cart
@@ -141,8 +139,6 @@ exports.getProfile = async (req, res, next) => {
         let cartQuantity = 0; // Default to 0 if cart is not found
         if (cart) {
             cartQuantity = cart.totalQuantity;
-        } else {
-            return next(new ErrorHandler("No cart found", 404));
         }
         res.status(200).json({ success: true, data: user, watchlistQuantity, cartQuantity });
 
@@ -467,15 +463,13 @@ exports.getUserDetails = async (req, res, next) => {
         const user = await User.findById(req.params.id);
 
         if (!user) return next(new ErrorHandler("User not found", 404));
-      
+
         // count the number of items in the user's watchlist
         const watchlist = await Watchlist.findOne({ user: user.id });
 
         let watchlistQuantity = 0; // Default to 0 if watchlist is not found
         if (watchlist) {
             watchlistQuantity = watchlist.products.length;
-        } else {
-            return next(new ErrorHandler("No watchlist found", 404));
         }
 
 
@@ -484,8 +478,6 @@ exports.getUserDetails = async (req, res, next) => {
         let cartQuantity = 0; // Default to 0 if cart is not found
         if (cart) {
             cartQuantity = cart.totalQuantity;
-        } else {
-            return next(new ErrorHandler("No cart found", 404));
         }
         res.status(200).json({ success: true, data: user, watchlistQuantity, cartQuantity });
 
