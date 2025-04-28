@@ -125,10 +125,26 @@ exports.getProfile = async (req, res, next) => {
         const user = await User.findById(req.user.id)
 
         if (!user) return next(new ErrorHandler("User not found", 404));
-        const watchlistItem = await Watchlist.countDocuments({ user: req.user.id });
-        const cartItem = await Cart.countDocuments({ user: req.user.id });
 
-        res.status(200).json({ success: true, data: user, watchlistItem, cartItem });
+        // count the number of items in the user's watchlist
+        const watchlist = await Watchlist.findOne({ user: user.id });
+
+        if (!watchlist) {
+            return next(new ErrorHandler("No watchlist found", 404));
+        }
+
+        const watchlistQuantity = watchlist.products.length;
+
+
+        // count the number of items in the user's cart
+        const cart = await Cart.findOne({ user: req.user.id });
+
+        if (!cart) {
+            return next(new ErrorHandler("No cart found", 404));
+        }
+        const cartQuantity = cart.totalQuantity;
+
+        res.status(200).json({ success: true, data: user, watchlistQuantity, cartQuantity });
 
     } catch (err) {
         next(new ErrorHandler(`Server Error: ${err.message}`, 500));
@@ -451,10 +467,25 @@ exports.getUserDetails = async (req, res, next) => {
         const user = await User.findById(req.params.id);
 
         if (!user) return next(new ErrorHandler("User not found", 404));
-        const watchlistItem = await Watchlist.countDocuments({ user: req.params.id });
-        const cartItem = await Cart.countDocuments({ user: req.params.id });
+       // count the number of items in the user's watchlist
+       const watchlist = await Watchlist.findOne({ user: req.params.id });
 
-        res.status(200).json({ success: true, data: user, watchlistItem, cartItem });
+       if (!watchlist) {
+           return next(new ErrorHandler("No watchlist found", 404));
+       }
+
+       const watchlistQuantity = watchlist.products.length;
+
+
+       // count the number of items in the user's cart
+       const cart = await Cart.findOne({ user: req.params.id });
+
+       if (!cart) {
+           return next(new ErrorHandler("No cart found", 404));
+       }
+       const cartQuantity = cart.totalQuantity;
+
+        res.status(200).json({ success: true, data: user, watchlistQuantity, cartQuantity });
 
     } catch (err) {
         next(new ErrorHandler(`Server Error: ${err.message}`, 500));
