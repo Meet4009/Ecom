@@ -287,7 +287,7 @@ exports.forgotPassword = async (req, res, next) => {
         await user.save({ validateBeforeSave: false });
 
         // Create reset password URL
-        const resetPasswordUrl = `${req.protocol}://${req.get("host")}/api/v1/user/password/reset/${resetToken}`;
+        const resetPasswordUrl = `${req.protocol}://${req.get("host")}/api/auth/user/password-reset?token=${resetToken}`;
 
         const message = `Your password reset link (valid for 10 minutes):\n\n${resetPasswordUrl}\n\nIf you didn't request this, please ignore this email.`;
 
