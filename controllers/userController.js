@@ -287,7 +287,7 @@ exports.forgotPassword = async (req, res, next) => {
         await user.save({ validateBeforeSave: false });
 
         // Create reset password URL
-        const resetPasswordUrl = `${process.env.CORS_ORIGIN}/api/auth/user/password-reset?token=${resetToken}`;
+        const resetPasswordUrl = `${process.env.CORS_ORIGIN}/password-reset?token=${resetToken}`;
 
         const message = `Your password reset link (valid for 10 minutes):\n\n${resetPasswordUrl}\n\nIf you didn't request this, please ignore this email.`;
 
